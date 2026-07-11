@@ -1,0 +1,13 @@
+id,name,latitude,longitude,address,mobile,type,mobile_clean,address_clean,node_id,beat_day,cluster
+C2D_01,Dist1,19.076,72.8777,Andheri East,9999999991,C2D,9999999991,andherieast,0,Tuesday,2
+C2D_02,Dist2,19.082,72.881,Bandra Kurla Complex,9999999992,C2D,9999999992,bandrakurlacomplex,1,Tuesday,2
+C2D_03,Dist3,19.12,72.91,Powai,9999999993,C2D,9999999993,powai,2,Wednesday,0
+C2D_04,Dist4,19.15,72.85,Goregaon,9999999994,C2D,9999999994,goregaon,3,Friday,4
+C2D_05,Dist5,19.03,72.85,Dadar,9999999995,C2D,9999999995,dadar,4,Monday,1
+C2D_06,Dist6,19.21,72.86,Kandivali,9999999996,C2D,9999999996,kandivali,5,Thursday,3
+D2R_01,Retail1,19.0761,72.8778,Andheri East,9999999991,D2R,9999999991,andherieast,0,Tuesday,2
+D2R_02,Retail2,19.0822,72.8812,BKC Area,9999999992,D2R,9999999992,bkcarea,1,Tuesday,2
+D2R_03,Retail3,19.1205,72.9102,Powai Lake,8888888881,D2R,8888888881,powailake,6,Wednesday,0
+D2R_04,Retail4,19.1502,72.8502,Goregaon East,8888888882,D2R,8888888882,goregaoneast,3,Friday,4
+D2R_05,Retail5,19.0302,72.8502,Dadar West,8888888883,D2R,8888888883,dadarwest,4,Monday,1
+D2R_06,Retail6,19.2102,72.8602,Kandivali West,8888888884,D2R,8888888884,kandivaliwest,5,Thursday,3
