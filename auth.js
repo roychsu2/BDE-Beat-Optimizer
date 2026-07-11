@@ -11,21 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const getUsers = () => JSON.parse(localStorage.getItem('optibeat_users') || '[]');
     const saveUsers = (users) => localStorage.setItem('optibeat_users', JSON.stringify(users));
 
-    if (!currentUser) {
-        // Show auth, hide app
-        if (mainApp) mainApp.style.display = 'none';
-        if (authOverlay) authOverlay.style.display = 'flex';
-        showLogin();
-    } else {
-        // Show app, hide auth
-        if (mainApp) mainApp.style.display = 'block';
-        if (authOverlay) authOverlay.style.display = 'none';
-        
-        // Update user display if it exists
-        const userDisplay = document.getElementById('current-username-display');
-        if (userDisplay) userDisplay.textContent = currentUser;
-    }
-    
     // Auth UI switching logic
     window.showSignup = function() {
         document.getElementById('login-form-container').style.display = 'none';
@@ -42,6 +27,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function clearAuthErrors() {
         document.getElementById('login-error').textContent = '';
         document.getElementById('signup-error').textContent = '';
+    }
+
+    if (!currentUser) {
+        // Show auth, hide app
+        if (mainApp) mainApp.style.display = 'none';
+        if (authOverlay) authOverlay.style.display = 'flex';
+        window.showLogin();
+    } else {
+        // Show app, hide auth
+        if (mainApp) mainApp.style.display = 'block';
+        if (authOverlay) authOverlay.style.display = 'none';
+        
+        // Update user display if it exists
+        const userDisplay = document.getElementById('current-username-display');
+        if (userDisplay) userDisplay.textContent = currentUser;
     }
 
     // Toggle Password Visibility
