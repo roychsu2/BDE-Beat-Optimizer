@@ -44,6 +44,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('signup-error').textContent = '';
     }
 
+    // Toggle Password Visibility
+    window.togglePassword = function(inputId, buttonEl) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            buttonEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-off-icon"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+        } else {
+            input.type = 'password';
+            buttonEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+        }
+    };
+
     // Login Logic
     window.handleLogin = function(event) {
         event.preventDefault();
@@ -55,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const user = users.find(u => (u.username === username || u.mobile === username) && u.password === pass);
         
         // Hardcoded Super Admin Check
-        if (username === 'superadmin' && pass === 'shuvarya') {
+        if (username.toLowerCase() === 'superadmin' && pass === 'shuvarya') {
             localStorage.setItem('optibeat_current_user', 'Super Admin');
             window.location.reload();
         } else if (user) {
