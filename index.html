@@ -70,10 +70,66 @@
 </head>
 <body>
     
-    <!-- Full Bleed Map Background -->
-    <div id="map-container">
-        <div id="map"></div>
+    <!-- Authentication Overlay -->
+    <div id="auth-overlay" class="auth-layer" style="display: none;">
+        <div class="auth-card glass-panel">
+            <div class="logo auth-logo">
+                <h1><span class="logo-opti">Opti</span><span class="logo-beat">Beat</span></h1>
+                <p>Smart Territory Allocation &amp; Daily Route Optimization</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-form-container">
+                <h2>Welcome Back</h2>
+                <form onsubmit="handleLogin(event)">
+                    <div class="input-group">
+                        <label>Username or Mobile ID</label>
+                        <input type="text" id="login-username" required placeholder="Enter your ID">
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                    <p id="login-error" class="error-msg"></p>
+                    <button type="submit" class="btn-primary w-100 mt-2">Login</button>
+                </form>
+                <div class="auth-switch">
+                    <p>New to OptiBeat? <a href="#" onclick="showSignup()">Create an account</a></p>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-form-container" style="display: none;">
+                <h2>Create Account</h2>
+                <form onsubmit="handleSignup(event)">
+                    <div class="input-group">
+                        <label>Username</label>
+                        <input type="text" id="signup-username" required placeholder="Choose a username">
+                    </div>
+                    <div class="input-group">
+                        <label>Mobile Number</label>
+                        <input type="tel" id="signup-mobile" required placeholder="Enter mobile number" pattern="[0-9]{10,15}">
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="signup-password" required placeholder="Create a password">
+                    </div>
+                    <p id="signup-error" class="error-msg"></p>
+                    <button type="submit" class="btn-primary w-100 mt-2">Sign Up</button>
+                </form>
+                <div class="auth-switch">
+                    <p>Already have an account? <a href="#" onclick="showLogin()">Login here</a></p>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- Main Application wrapper -->
+    <div id="main-app-content" style="display: none;">
+        <!-- Full Bleed Map Background -->
+        <div id="map-container">
+            <div id="map"></div>
+        </div>
     
     <!-- Floating UI Overlay -->
     <div class="ui-layer">
@@ -84,6 +140,12 @@
                 <div class="logo">
                     <h1><span class="logo-opti">Opti</span><span class="logo-beat">Beat</span></h1>
                     <p>Smart Territory Allocation &amp; Daily Route Optimization</p>
+                </div>
+                <div class="user-profile-widget">
+                    <span id="current-username-display" class="user-badge"></span>
+                    <button onclick="handleLogout()" class="btn-logout" title="Logout">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </button>
                 </div>
             </header>
 
@@ -231,10 +293,14 @@
 
     </div>
 
-    <footer style="position: absolute; bottom: 10px; right: 10px; z-index: 20; font-size: 0.7rem; font-weight: 500; color: var(--text-secondary); background: rgba(255,255,255,0.6); padding: 4px 8px; border-radius: 6px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.5);">
+    <footer style="position: absolute; bottom: 10px; right: 10px; z-index: 20; font-size: 0.7rem; font-weight: 500; color: var(--text-secondary); background: rgba(255,255,255,0.6); padding: 4px 8px; border-radius: 6px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.4); pointer-events: none;">
         &copy; 2026 Shuvarya Technologies. All rights reserved
     </footer>
 
+    </div> <!-- End main-app-content -->
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="app.js"></script>

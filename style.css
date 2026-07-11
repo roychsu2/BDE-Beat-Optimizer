@@ -344,3 +344,134 @@ body {
     border-radius: 4px;
     display: inline-block;
 }
+
+/* --- Authentication UI --- */
+.auth-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop') center/cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.auth-layer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.auth-card {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 400px;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.auth-logo {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.auth-card h2 {
+    font-size: 1.4rem;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.auth-card .input-group {
+    margin-bottom: 1rem;
+}
+
+.auth-card input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.7);
+    transition: all 0.2s;
+    outline: none;
+}
+
+.auth-card input:focus {
+    border-color: var(--primary-color);
+    background: white;
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.auth-switch {
+    text-align: center;
+    font-size: 0.85rem;
+    margin-top: 1.5rem;
+    color: var(--text-secondary);
+}
+
+.auth-switch a {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.error-msg {
+    color: #ef4444;
+    font-size: 0.8rem;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+    min-height: 1.2em;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* User Profile Widget */
+.user-profile-widget {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 0.5rem;
+}
+
+.user-badge {
+    background: var(--primary-glow);
+    color: var(--primary-hover);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.btn-logout {
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-secondary);
+    padding: 5px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-logout:hover {
+    background: #fee2e2;
+    color: #ef4444;
+    border-color: #fca5a5;
+}
