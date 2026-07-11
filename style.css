@@ -76,6 +76,7 @@ body {
 .app-header {
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid var(--panel-border);
+    position: relative;
 }
 
 .logo h1 {
@@ -477,10 +478,12 @@ body {
 
 /* User Profile Widget */
 .user-profile-widget {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.5rem;
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-top: 0.5rem;
 }
 
 .user-badge {
