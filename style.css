@@ -24,10 +24,10 @@ body {
     font-family: var(--font-sans);
     background: var(--bg-gradient);
     color: var(--text-primary);
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 header {
@@ -55,12 +55,13 @@ header {
 .container {
     max-width: 100%;
     margin: 0 auto;
-    padding: 2rem 2rem;
+    padding: 1rem 2rem;
     width: 100%;
     display: grid;
     grid-template-columns: 380px 1fr;
-    gap: 2rem;
+    gap: 1.5rem;
     flex-grow: 1;
+    overflow: hidden;
 }
 
 /* Glass panel base */
@@ -73,12 +74,16 @@ header {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    height: 100%;
+    overflow-y: auto;
 }
 
 .left-column {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    height: 100%;
+    overflow: hidden;
 }
 
 h2 {
@@ -230,6 +235,8 @@ h2 {
     display: grid;
     grid-template-rows: 1fr auto;
     gap: 1.5rem;
+    height: 100%;
+    overflow: hidden;
 }
 
 #map-container {
@@ -237,7 +244,7 @@ h2 {
     overflow: hidden;
     position: relative;
     border: 1px solid var(--panel-border);
-    min-height: 500px;
+    min-height: 0;
     height: 100%;
     box-shadow: var(--shadow);
 }
