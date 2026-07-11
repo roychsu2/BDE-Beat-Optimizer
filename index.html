@@ -53,7 +53,7 @@
         .template-dl-btn:hover { background:#f8fafc; border-color:#94a3b8; }
         
         .radio-group { display:flex; gap:4px; flex-wrap:nowrap; }
-        .radio-pill { display:flex; align-items:center; justify-content:center; flex:1; gap:4px; padding:5px 4px; border:1px solid #cbd5e1; border-radius:20px; font-size:.7rem; font-weight:500; cursor:pointer; transition:all .2s; background:rgba(255,255,255,0.8); color:var(--text-secondary); white-space:nowrap; }
+        .radio-pill { display:flex; align-items:center; justify-content:center; text-align:center; flex:1; gap:0px; padding:5px 4px; border:1px solid #cbd5e1; border-radius:20px; font-size:.7rem; font-weight:500; cursor:pointer; transition:all .2s; background:rgba(255,255,255,0.8); color:var(--text-secondary); white-space:nowrap; }
         .radio-pill input[type="radio"] { display:none; }
         .radio-pill:has(input:checked) { background:var(--primary-color); color:white; border-color:var(--primary-color); box-shadow:0 2px 6px var(--primary-glow); }
         
@@ -158,9 +158,9 @@
                         <div>
                             <label>Customer Type</label>
                             <div class="radio-group">
-                                <label class="radio-pill"><input type="radio" name="cust-type-filter" value="ALL" checked onchange="onCustTypeChange(this)"> All</label>
-                                <label class="radio-pill"><input type="radio" name="cust-type-filter" value="RETAILER" onchange="onCustTypeChange(this)"> Retailers Only</label>
-                                <label class="radio-pill"><input type="radio" name="cust-type-filter" value="DISTRIBUTOR" onchange="onCustTypeChange(this)"> Distributors Only</label>
+                                <label class="radio-pill"><input type="radio" name="cust-type-filter" value="ALL" checked onchange="onCustTypeChange(this)">All</label>
+                                <label class="radio-pill"><input type="radio" name="cust-type-filter" value="RETAILER" onchange="onCustTypeChange(this)">Retailers Only</label>
+                                <label class="radio-pill"><input type="radio" name="cust-type-filter" value="DISTRIBUTOR" onchange="onCustTypeChange(this)">Distributors Only</label>
                             </div>
 
                             <!-- D2R / C2D sub-filter -->
