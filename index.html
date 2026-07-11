@@ -3,195 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BDE Daily Beat Optimizer</title>
+    <title>OptiBeat | Smart Territory Allocation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <link rel="stylesheet" href="style.css">
     <style>
+        /* Inline component styles adapted for new layout */
         .tabs-container { display:flex; flex-direction:column; gap:.75rem; margin-top:.5rem; }
-        .week-tabs { display:flex; flex-wrap:wrap; background:#f1f5f9; padding:4px; border-radius:8px; gap:4px; }
+        .week-tabs { display:flex; flex-wrap:wrap; background:rgba(241, 245, 249, 0.6); padding:4px; border-radius:8px; gap:4px; }
         .tab-btn { flex:1; min-width:72px; padding:.4rem .3rem; border-radius:6px; border:none; background:transparent; font-size:.75rem; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:all .2s; text-align:center; line-height:1.3; }
-        .tab-btn.active { background:white; color:var(--primary-color); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+        .tab-btn.active { background:white; color:var(--primary-color); box-shadow:0 2px 4px rgba(0,0,0,.04); }
         .tab-btn .week-dates { font-size:.65rem; font-weight:400; color:#94a3b8; display:block; }
         .tab-btn.active .week-dates { color:var(--primary-color); opacity:.7; }
         .day-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
-        .day-btn { padding:.5rem .25rem; border-radius:6px; border:1px solid var(--panel-border); background:white; font-size:.8rem; font-weight:500; color:var(--text-primary); cursor:pointer; transition:all .2s; text-align:center; }
+        .day-btn { padding:.5rem .25rem; border-radius:8px; border:1px solid var(--panel-border); background:rgba(255,255,255,0.6); font-size:.8rem; font-weight:500; color:var(--text-primary); cursor:pointer; transition:all .2s; text-align:center; }
         .day-btn:hover { border-color:var(--primary-color); }
-        .day-btn.active { background:var(--primary-color); color:white; border-color:var(--primary-color); box-shadow:0 2px 4px var(--primary-glow); }
-        .stops-list-container { flex-grow:1; overflow-y:auto; max-height:280px; border:1px solid var(--panel-border); border-radius:8px; background:#fafafa; padding:.5rem; display:flex; flex-direction:column; gap:.5rem; }
-        .stop-item-card { background:white; border:1px solid var(--panel-border); border-radius:6px; padding:.65rem; font-size:.8rem; display:flex; flex-direction:column; gap:4px; }
+        .day-btn.active { background:var(--primary-color); color:white; border-color:var(--primary-color); box-shadow:0 2px 8px var(--primary-glow); }
+        .stops-list-container { flex-grow:1; overflow-y:auto; max-height:280px; border:1px solid var(--panel-border); border-radius:10px; background:rgba(255,255,255,0.4); padding:.5rem; display:flex; flex-direction:column; gap:.5rem; }
+        .stop-item-card { background:rgba(255,255,255,0.8); border:1px solid var(--panel-border); border-radius:8px; padding:.75rem; font-size:.8rem; display:flex; flex-direction:column; gap:6px; transition: transform 0.2s; }
+        .stop-item-card:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
         .stop-item-title { font-weight:600; color:var(--text-primary); }
         .stop-item-meta { color:var(--text-secondary); font-size:.75rem; display:flex; justify-content:space-between; }
-        .stop-item-badge { background:#e2e8f0; padding:1px 6px; border-radius:4px; font-size:.7rem; font-weight:600; }
+        .stop-item-badge { background:#e2e8f0; padding:2px 8px; border-radius:12px; font-size:.7rem; font-weight:600; color:var(--text-primary); }
         .hidden { display:none !important; }
-        .filter-section { display:flex; flex-direction:column; gap:.6rem; padding:.75rem; background:#f8fafc; border:1px solid var(--panel-border); border-radius:8px; margin-top:.5rem; }
-        .filter-section label { font-size:.78rem; font-weight:600; color:var(--text-secondary); margin-bottom:2px; }
-        .filter-section select, .filter-section input[type="month"], .filter-section input[type="date"] { width:100%; padding:.4rem .6rem; border:1px solid var(--panel-border); border-radius:6px; font-size:.82rem; color:var(--text-primary); background:white; outline:none; transition:border-color .2s; box-sizing:border-box; }
-        .filter-section select:focus, .filter-section input[type="date"]:focus { border-color:var(--primary-color); }
-        .plan-mode-toggle { display:flex; background:#f1f5f9; padding:3px; border-radius:7px; gap:3px; }
-        .plan-mode-btn { flex:1; padding:4px 8px; border-radius:5px; border:none; font-size:.75rem; font-weight:600; cursor:pointer; background:transparent; color:var(--text-secondary); transition:all .2s; }
-        .plan-mode-btn.active { background:white; color:var(--primary-color); box-shadow:0 1px 3px rgba(0,0,0,.08); }
-        .date-range-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-        .date-range-row label { font-size:.72rem; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:3px; }
-        /* D2R / C2D sub-filter */
-        .sub-filter-box { margin-top:.5rem; padding:.55rem .65rem; background:#f0f9ff; border:1px solid #bae6fd; border-radius:7px; animation: fadeIn .2s ease; }
-        .sub-filter-box label { font-size:.75rem; font-weight:700; color:#0369a1; display:block; margin-bottom:.4rem; }
-        .sub-filter-pills { display:flex; gap:.4rem; flex-wrap:wrap; }
-        .sub-pill { display:flex; align-items:center; gap:4px; padding:3px 10px; border:1px solid #7dd3fc; border-radius:20px; font-size:.76rem; font-weight:600; cursor:pointer; background:white; color:#0369a1; transition:all .2s; }
+        
+        .filter-section { display:flex; flex-direction:column; gap:.8rem; padding:1rem; background:rgba(255,255,255,0.4); border:1px solid var(--panel-border); border-radius:10px; margin-top:.5rem; }
+        .filter-section label { font-size:.78rem; font-weight:600; color:var(--text-secondary); margin-bottom:4px; display: block; }
+        .filter-section select, .filter-section input[type="month"], .filter-section input[type="date"] { width:100%; padding:.6rem .8rem; border:1px solid #cbd5e1; border-radius:8px; font-size:.85rem; color:var(--text-primary); background:rgba(255,255,255,0.9); outline:none; transition:all .2s; box-sizing:border-box; font-family: var(--font-sans); }
+        .filter-section select:focus, .filter-section input[type="date"]:focus, .filter-section input[type="month"]:focus { border-color:var(--primary-color); box-shadow: 0 0 0 3px var(--primary-glow); }
+        
+        .plan-mode-toggle { display:flex; background:rgba(241, 245, 249, 0.7); padding:4px; border-radius:8px; gap:4px; }
+        .plan-mode-btn { flex:1; padding:6px 8px; border-radius:6px; border:none; font-size:.75rem; font-weight:600; cursor:pointer; background:transparent; color:var(--text-secondary); transition:all .2s; }
+        .plan-mode-btn.active { background:white; color:var(--primary-color); box-shadow:0 1px 3px rgba(0,0,0,.05); }
+        .date-range-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        
+        .sub-filter-box { margin-top:.5rem; padding:.75rem; background:rgba(240, 249, 255, 0.5); border:1px solid #bae6fd; border-radius:8px; animation: fadeIn .2s ease; }
+        .sub-filter-box label { font-size:.75rem; font-weight:600; color:#0369a1; display:block; margin-bottom:.5rem; }
+        .sub-filter-pills { display:flex; gap:.5rem; flex-wrap:wrap; }
+        .sub-pill { display:flex; align-items:center; gap:6px; padding:4px 12px; border:1px solid #bae6fd; border-radius:20px; font-size:.75rem; font-weight:600; cursor:pointer; background:rgba(255,255,255,0.8); color:#0284c7; transition:all .2s; }
         .sub-pill input[type="checkbox"] { display:none; }
-        .sub-pill:has(input:checked) { background:#0ea5e9; color:white; border-color:#0ea5e9; }
+        .sub-pill:has(input:checked) { background:#0ea5e9; color:white; border-color:#0ea5e9; box-shadow:0 2px 4px rgba(14, 165, 233, 0.15); }
         @keyframes fadeIn { from{opacity:0;transform:translateY(-4px);} to{opacity:1;transform:none;} }
-        /* Template download strip */
-        .template-strip { display:flex; align-items:center; justify-content:space-between; padding:.45rem .7rem; background:#f0fdf4; border:1px dashed #86efac; border-radius:7px; margin-top:.5rem; }
-        .template-strip span { font-size:.75rem; color:#16a34a; font-weight:500; }
-        .template-dl-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:6px; border:1px solid #86efac; background:white; color:#16a34a; font-size:.75rem; font-weight:700; cursor:pointer; transition:all .2s; text-decoration:none; white-space:nowrap; }
-        .template-dl-btn:hover { background:#16a34a; color:white; border-color:#16a34a; }
-        .filter-section select:focus, .filter-section input[type="month"]:focus { border-color:var(--primary-color); }
+        
+        .template-strip { display:flex; align-items:center; justify-content:space-between; padding:.6rem .8rem; background:rgba(255,255,255,0.5); border:1px solid #e2e8f0; border-radius:8px; margin-top:.5rem; }
+        .template-strip span { font-size:.75rem; color:var(--text-secondary); font-weight:500; }
+        .template-dl-btn { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:6px; border:1px solid #cbd5e1; background:white; color:var(--text-primary); font-size:.75rem; font-weight:600; cursor:pointer; transition:all .2s; text-decoration:none; white-space:nowrap; }
+        .template-dl-btn:hover { background:#f8fafc; border-color:#94a3b8; }
+        
         .radio-group { display:flex; gap:.5rem; flex-wrap:wrap; }
-        .radio-pill { display:flex; align-items:center; gap:4px; padding:4px 10px; border:1px solid var(--panel-border); border-radius:20px; font-size:.78rem; font-weight:500; cursor:pointer; transition:all .2s; background:white; color:var(--text-secondary); }
+        .radio-pill { display:flex; align-items:center; gap:4px; padding:5px 12px; border:1px solid #cbd5e1; border-radius:20px; font-size:.75rem; font-weight:500; cursor:pointer; transition:all .2s; background:rgba(255,255,255,0.8); color:var(--text-secondary); }
         .radio-pill input[type="radio"] { display:none; }
-        .radio-pill:has(input:checked) { background:var(--primary-color); color:white; border-color:var(--primary-color); }
-        .month-info-badge { display:inline-flex; align-items:center; gap:6px; background:#ede9fe; color:#7c3aed; padding:4px 10px; border-radius:20px; font-size:.75rem; font-weight:600; }
+        .radio-pill:has(input:checked) { background:var(--primary-color); color:white; border-color:var(--primary-color); box-shadow:0 2px 6px var(--primary-glow); }
+        
+        .month-info-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(237, 233, 254, 0.8); color:#6d28d9; padding:4px 10px; border-radius:20px; font-size:.75rem; font-weight:600; }
+        .capacity-badge { display:inline-flex; align-items:center; background: rgba(241, 245, 249, 0.8); border: 1px solid #e2e8f0; color: var(--text-secondary); padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.2px; }
+        .section-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+        .section-title-row h2 { margin-bottom: 0; }
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <h1>BDE Beat Optimizer</h1>
-            <p>Patch-based BDE Daily Routing &amp; Spatial Allocation (Capacitated 24 Calls/Day)</p>
-        </div>
-    </header>
-
-    <main class="container">
-        <section class="left-column">
-            <!-- Screen 1: Upload & Config -->
-            <div class="panel" id="screen-upload">
-                <h2>Load Dataset</h2>
-                <div class="upload-group">
-                    <label class="upload-label" for="beat-file">Upload BDE Beat Excel/CSV Sheet</label>
-                    <div class="dropzone" id="beat-dropzone">
-                        <div class="dropzone-icon">📥</div>
-                        <p>Drag &amp; drop or click to upload</p>
-                        <span id="beat-file-name">No file loaded</span>
-                        <input type="file" id="beat-file" accept=".xlsx, .xls, .csv">
-                    </div>
+    
+    <!-- Full Bleed Map Background -->
+    <div id="map-container">
+        <div id="map"></div>
+    </div>
+    
+    <!-- Floating UI Overlay -->
+    <div class="ui-layer">
+        
+        <!-- Floating Sidebar -->
+        <aside class="sidebar glass-panel">
+            <header class="app-header">
+                <div class="logo">
+                    <h1>OptiBeat</h1>
+                    <p>Smart Territory Allocation &amp; Daily Route Optimization</p>
                 </div>
+            </header>
 
-                <!-- Template Download Strip -->
-                <div class="template-strip">
-                    <span>💡 First time? Download the template first.</span>
-                    <button class="template-dl-btn" onclick="downloadTemplate()">
-                        ⬇️ Template
-                    </button>
-                </div>
-
-                <div class="filter-section">
-                    <!-- Planning Mode Toggle -->
-                    <div>
-                        <label>📅 Planning Period</label>
-                        <div class="plan-mode-toggle">
-                            <button class="plan-mode-btn active" id="mode-full-month" onclick="setPlanMode('full')">Full Month</button>
-                            <button class="plan-mode-btn" id="mode-date-range" onclick="setPlanMode('range')">Specific Dates</button>
-                        </div>
+            <div class="panel-scroll-area">
+                <!-- Screen 1: Upload & Config -->
+                <div class="panel-content" id="screen-upload">
+                    <div class="section-title-row">
+                        <h2>Load Dataset</h2>
+                        <span class="capacity-badge">24 Calls / Day</span>
                     </div>
-
-                    <!-- Full Month Input -->
-                    <div id="input-full-month">
-                        <label>Month &amp; Year</label>
-                        <input type="month" id="beat-month" />
-                    </div>
-
-                    <!-- Date Range Input (hidden by default) -->
-                    <div id="input-date-range" class="hidden">
-                        <div class="date-range-row">
-                            <div>
-                                <label>From Date</label>
-                                <input type="date" id="beat-start-date" />
+                    
+                    <div class="upload-group">
+                        <div class="dropzone" id="beat-dropzone">
+                            <div class="dropzone-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                             </div>
                             <div>
-                                <label>To Date</label>
-                                <input type="date" id="beat-end-date" />
+                                <p class="drop-title">Drop your Excel/CSV here</p>
+                                <span id="beat-file-name" class="drop-desc">No file selected</span>
+                            </div>
+                            <input type="file" id="beat-file" accept=".xlsx, .xls, .csv">
+                        </div>
+                    </div>
+
+                    <!-- Template Download Strip -->
+                    <div class="template-strip">
+                        <span>Need a template?</span>
+                        <button class="template-dl-btn" onclick="downloadTemplate()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download
+                        </button>
+                    </div>
+
+                    <div class="filter-section">
+                        <!-- Planning Mode Toggle -->
+                        <div>
+                            <label>Planning Period</label>
+                            <div class="plan-mode-toggle">
+                                <button class="plan-mode-btn active" id="mode-full-month" onclick="setPlanMode('full')">Full Month</button>
+                                <button class="plan-mode-btn" id="mode-date-range" onclick="setPlanMode('range')">Specific Dates</button>
+                            </div>
+                        </div>
+
+                        <!-- Full Month Input -->
+                        <div id="input-full-month">
+                            <input type="month" id="beat-month" />
+                        </div>
+
+                        <!-- Date Range Input (hidden by default) -->
+                        <div id="input-date-range" class="hidden">
+                            <div class="date-range-row">
+                                <div>
+                                    <label>From Date</label>
+                                    <input type="date" id="beat-start-date" />
+                                </div>
+                                <div>
+                                    <label>To Date</label>
+                                    <input type="date" id="beat-end-date" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label>Employee (BDE)</label>
+                            <select id="employee-filter">
+                                <option value="__ALL__">All Employees</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Customer Type</label>
+                            <div class="radio-group">
+                                <label class="radio-pill"><input type="radio" name="cust-type-filter" value="ALL" checked onchange="onCustTypeChange(this)"> All</label>
+                                <label class="radio-pill"><input type="radio" name="cust-type-filter" value="RETAILER" onchange="onCustTypeChange(this)"> Retailers Only</label>
+                                <label class="radio-pill"><input type="radio" name="cust-type-filter" value="DISTRIBUTOR" onchange="onCustTypeChange(this)"> Distributors Only</label>
+                            </div>
+
+                            <!-- D2R / C2D sub-filter -->
+                            <div class="sub-filter-box hidden" id="dist-subfilter">
+                                <label>Distributor Channel</label>
+                                <div class="sub-filter-pills">
+                                    <label class="sub-pill">
+                                        <input type="checkbox" id="ch-c2d" name="dist-channel" value="C2D" checked>
+                                        C2D
+                                    </label>
+                                    <label class="sub-pill">
+                                        <input type="checkbox" id="ch-d2r" name="dist-channel" value="D2R" checked>
+                                        D2R
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div>
-                        <label>👤 Employee (BDE)</label>
-                        <select id="employee-filter">
-                            <option value="__ALL__">All Employees</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>🏪 Customer Type</label>
-                        <div class="radio-group">
-                            <label class="radio-pill"><input type="radio" name="cust-type-filter" value="ALL" checked onchange="onCustTypeChange(this)"> All</label>
-                            <label class="radio-pill"><input type="radio" name="cust-type-filter" value="RETAILER" onchange="onCustTypeChange(this)"> Retailers Only</label>
-                            <label class="radio-pill"><input type="radio" name="cust-type-filter" value="DISTRIBUTOR" onchange="onCustTypeChange(this)"> Distributors Only</label>
-                        </div>
+                    <button class="btn btn-primary" id="optimize-btn" disabled>Optimize Route Beats</button>
+                </div>
 
-                        <!-- D2R / C2D sub-filter — visible only when Distributor is chosen -->
-                        <div class="sub-filter-box hidden" id="dist-subfilter">
-                            <label>📦 Distributor Channel <span style="font-weight:400;font-size:.68rem;color:#0369a1;opacity:.8;">(select one or both)</span></label>
-                            <div class="sub-filter-pills">
-                                <label class="sub-pill">
-                                    <input type="checkbox" id="ch-c2d" name="dist-channel" value="C2D" checked>
-                                    ✅ C2D
-                                </label>
-                                <label class="sub-pill">
-                                    <input type="checkbox" id="ch-d2r" name="dist-channel" value="D2R" checked>
-                                    ✅ D2R
-                                </label>
-                            </div>
-                        </div>
+                <!-- Screen 2: Schedule Browser -->
+                <div class="panel-content hidden" id="screen-browser">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;">
+                        <h2 style="margin:0;">Interactive Schedule</h2>
+                        <span class="month-info-badge" id="month-display-badge">—</span>
+                    </div>
+                    <div class="tabs-container">
+                        <div class="week-tabs" id="week-tabs-container"></div>
+                        <div class="day-tabs" id="day-tabs-container"></div>
+                    </div>
+                    <div style="font-size:.85rem;font-weight:600;color:var(--text-secondary);margin-bottom:-.25rem;">
+                        Daily Stops (<span id="stops-count">0</span> stops, <span id="calls-count">0</span> calls):
+                    </div>
+                    <div class="stops-list-container" id="stops-list"></div>
+                    
+                    <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem;">
+                        <button class="btn btn-primary" id="download-btn">Download Excel</button>
+                        <button class="btn btn-secondary" id="back-upload-btn">Upload Another File</button>
                     </div>
                 </div>
-
-                <button class="btn btn-primary" id="optimize-btn" disabled>⚡ Optimize Route Beats</button>
-            </div>
-
-            <!-- Screen 2: Schedule Browser -->
-            <div class="panel hidden" id="screen-browser">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.25rem;">
-                    <h2 style="margin:0;">Interactive Schedule</h2>
-                    <span class="month-info-badge" id="month-display-badge">—</span>
-                </div>
-                <div class="tabs-container">
-                    <div class="week-tabs" id="week-tabs-container"></div>
-                    <div class="day-tabs" id="day-tabs-container"></div>
-                </div>
-                <div style="font-size:.85rem;font-weight:600;color:var(--text-secondary);margin-bottom:-.5rem;">
-                    Daily Stops (<span id="stops-count">0</span> stops, <span id="calls-count">0</span> calls):
-                </div>
-                <div class="stops-list-container" id="stops-list"></div>
-                <button class="btn btn-success" id="download-btn">💾 Download Optimized Excel</button>
-                <button class="btn" id="back-upload-btn" style="background:#f1f5f9;border:1px solid var(--panel-border);color:var(--text-primary);font-size:.85rem;padding:.5rem 1rem;">🔄 Upload Another File</button>
-            </div>
-
-            <!-- Dashboard Stats -->
-            <div class="panel" id="dashboard-panel" style="display:none;">
-                <h2>Optimization Dashboard</h2>
-                <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-val" id="stat-total-records">0</div><div class="stat-label">Total Records</div></div>
-                    <div class="stat-card"><div class="stat-val" id="stat-unique-stops">0</div><div class="stat-label">Unique Stops</div></div>
-                    <div class="stat-card"><div class="stat-val" id="stat-avg-calls">0</div><div class="stat-label">Avg Calls/Day</div></div>
-                    <div class="stat-card"><div class="stat-val" id="stat-working-days">0</div><div class="stat-label">Working Days</div></div>
+                
+                <!-- Dashboard Stats -->
+                <div class="panel-content" id="dashboard-panel" style="display:none; margin-top: 1.5rem;">
+                    <h2>Dashboard</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="stat-val" id="stat-total-records">0</div><div class="stat-label">Total Records</div></div>
+                        <div class="stat-card"><div class="stat-val" id="stat-unique-stops">0</div><div class="stat-label">Unique Stops</div></div>
+                        <div class="stat-card"><div class="stat-val" id="stat-avg-calls">0</div><div class="stat-label">Avg Calls/Day</div></div>
+                        <div class="stat-card"><div class="stat-val" id="stat-working-days">0</div><div class="stat-label">Working Days</div></div>
+                    </div>
                 </div>
             </div>
-        </section>
+        </aside>
 
-        <section class="right-column">
-            <div id="map-container">
-                <div id="map"></div>
-            </div>
-            <div class="status-bar">
+        <!-- Floating Status Pill -->
+        <div class="status-pill-container">
+            <div class="floating-status glass-panel">
                 <div class="status-indicator">
                     <span class="status-dot" id="status-dot"></span>
                     <span id="status-text">Ready</span>
                 </div>
-                <div id="status-detail" style="font-size:.8rem;color:var(--text-secondary);">Upload files to begin</div>
+                <div class="status-divider"></div>
+                <div id="status-detail" class="status-detail">Upload files to begin</div>
             </div>
-        </section>
-    </main>
-    <footer style="text-align: center; padding: 0.5rem; font-size: 0.8rem; color: var(--text-secondary); background: var(--panel-bg); border-top: 1px solid var(--panel-border); z-index: 10;">
+        </div>
+
+    </div>
+
+    <!-- Hidden standard footer just for SEO/Markup if needed, but not visible on app -->
+    <footer style="display:none;">
         &copy; 2026 Shuvarya Technologies. All rights reserved
     </footer>
 
