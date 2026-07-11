@@ -394,9 +394,10 @@ function balanceClusters(nodes, initialMap, centroids, k) {
     const avgW = totalW / k;
     const targetCalls = parseInt(document.getElementById('daily-call-capacity').value) || 24;
     
-    // Set boundaries based on user's target capacity, but allow flexibility based on average
-    const tMin = Math.max(targetCalls - 4, Math.floor(avgW - 3));
-    const tMax = Math.max(targetCalls + 1, Math.ceil(avgW + 3));
+    // Strict ±10% margin based on user input
+    const margin = Math.round(targetCalls * 0.10);
+    const tMin = targetCalls - margin;
+    const tMax = targetCalls + margin;
 
     for (let iter = 0; iter < 300; iter++) {
         const wts = new Array(k).fill(0);
