@@ -54,7 +54,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const users = getUsers();
         const user = users.find(u => (u.username === username || u.mobile === username) && u.password === pass);
         
-        if (user) {
+        // Hardcoded Super Admin Check
+        if (username === 'superadmin' && pass === 'shuvarya') {
+            localStorage.setItem('optibeat_current_user', 'Super Admin');
+            window.location.reload();
+        } else if (user) {
             localStorage.setItem('optibeat_current_user', user.username);
             window.location.reload();
         } else {
@@ -77,7 +81,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const users = getUsers();
         
-        // Validation: uniqueness
+        // Validation: uniqueness & reserved names
+        if (username.toLowerCase() === 'superadmin') {
+            errEl.textContent = 'This username is reserved.';
+            return;
+        }
+
         const userExists = users.find(u => u.username === username);
         if (userExists) {
             errEl.textContent = 'Username is already taken.';
