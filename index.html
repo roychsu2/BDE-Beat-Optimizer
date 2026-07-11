@@ -17,16 +17,19 @@
         .tab-btn.active { background:white; color:var(--primary-color); box-shadow:0 2px 4px rgba(0,0,0,.04); }
         .tab-btn .week-dates { font-size:.65rem; font-weight:400; color:#94a3b8; display:block; }
         .tab-btn.active .week-dates { color:var(--primary-color); opacity:.7; }
-        .day-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
-        .day-btn { padding:.5rem .25rem; border-radius:8px; border:1px solid var(--panel-border); background:rgba(255,255,255,0.6); font-size:.8rem; font-weight:500; color:var(--text-primary); cursor:pointer; transition:all .2s; text-align:center; }
-        .day-btn:hover { border-color:var(--primary-color); }
-        .day-btn.active { background:var(--primary-color); color:white; border-color:var(--primary-color); box-shadow:0 2px 8px var(--primary-glow); }
-        .stops-list-container { flex-grow:1; overflow-y:auto; max-height:280px; border:1px solid var(--panel-border); border-radius:10px; background:rgba(255,255,255,0.4); padding:.5rem; display:flex; flex-direction:column; gap:.5rem; }
-        .stop-item-card { background:rgba(255,255,255,0.8); border:1px solid var(--panel-border); border-radius:8px; padding:.75rem; font-size:.8rem; display:flex; flex-direction:column; gap:6px; transition: transform 0.2s; }
-        .stop-item-card:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
-        .stop-item-title { font-weight:600; color:var(--text-primary); }
-        .stop-item-meta { color:var(--text-secondary); font-size:.75rem; display:flex; justify-content:space-between; }
-        .stop-item-badge { background:#e2e8f0; padding:2px 8px; border-radius:12px; font-size:.7rem; font-weight:600; color:var(--text-primary); }
+        .day-tabs { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom: 0.5rem; }
+        .day-btn { flex:1; min-width:60px; padding:0.6rem 0.25rem; border-radius:10px; border:1px solid transparent; background:rgba(241, 245, 249, 0.7); font-size:0.8rem; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align:center; }
+        .day-btn:hover { background:rgba(226, 232, 240, 0.8); color:var(--text-primary); transform:translateY(-1px); }
+        .day-btn.active { background:var(--primary-color); color:white; border-color:var(--primary-hover); box-shadow:0 4px 12px var(--primary-glow); transform:translateY(-2px); }
+        .stops-list-container { flex-grow:1; overflow-y:auto; max-height:300px; border:none; border-radius:12px; background:transparent; padding:0.25rem; display:flex; flex-direction:column; gap:0.6rem; }
+        .stops-list-container::-webkit-scrollbar { width: 6px; }
+        .stops-list-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); border-radius: 4px; }
+        .stops-list-container::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+        .stop-item-card { background:rgba(255,255,255,0.9); border:1px solid #e2e8f0; border-left: 4px solid var(--primary-color); border-radius:10px; padding:0.8rem; font-size:0.85rem; display:flex; flex-direction:column; gap:8px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .stop-item-card:hover { transform: translateX(2px) translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-color: #cbd5e1; }
+        .stop-item-title { font-weight:700; color:var(--text-primary); font-size: 0.9rem; }
+        .stop-item-meta { color:var(--text-secondary); font-size:0.75rem; display:flex; justify-content:space-between; align-items: center; }
+        .stop-item-badge { background:#f1f5f9; padding:3px 10px; border-radius:12px; font-size:0.7rem; font-weight:700; color:var(--text-primary); border: 1px solid #e2e8f0; }
         .hidden { display:none !important; }
         
         .filter-section { display:flex; flex-direction:column; gap:.8rem; padding:1rem; background:rgba(255,255,255,0.4); border:1px solid var(--panel-border); border-radius:10px; margin-top:.5rem; }
@@ -265,8 +268,9 @@
                         <div class="week-tabs" id="week-tabs-container"></div>
                         <div class="day-tabs" id="day-tabs-container"></div>
                     </div>
-                    <div style="font-size:.85rem;font-weight:600;color:var(--text-secondary);margin-bottom:-.25rem;">
-                        Daily Stops (<span id="stops-count">0</span> stops, <span id="calls-count">0</span> calls):
+                    <div style="font-size:1rem;font-weight:700;color:var(--text-primary);margin:0.5rem 0 0.5rem 0.25rem;display:flex;align-items:center;justify-content:space-between;">
+                        <span>Daily Stops</span>
+                        <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); background: #f1f5f9; padding:3px 10px; border-radius:20px;"><span id="stops-count">0</span> stops &bull; <span id="calls-count">0</span> calls</span>
                     </div>
                     <div class="stops-list-container" id="stops-list"></div>
                     
