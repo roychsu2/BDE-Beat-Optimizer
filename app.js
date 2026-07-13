@@ -741,18 +741,18 @@ function renderActiveSelection() {
         const c2 = dayColors[node.beat_day] || color;
         const isStart = idx === 0, isEnd = idx === filtered.length - 1;
         let badge = '';
-        if (isStart) badge = '<span style="background:#22c55e;color:white;padding:1px 6px;border-radius:4px;font-size:.65rem;font-weight:700;margin-right:6px;">STARTING CALL</span>';
-        if (isEnd) badge = '<span style="background:#ef4444;color:white;padding:1px 6px;border-radius:4px;font-size:.65rem;font-weight:700;margin-right:6px;">ENDING CALL</span>';
+        if (isStart) badge = '<span style="background:#22c55e;color:white;padding:1px 6px;border-radius:4px;font-size:.55rem;font-weight:700;margin-right:6px;">STARTING CALL</span>';
+        if (isEnd) badge = '<span style="background:#ef4444;color:white;padding:1px 6px;border-radius:4px;font-size:.55rem;font-weight:700;margin-right:6px;">ENDING CALL</span>';
         const card = document.createElement('div');
         card.className = 'stop-item-card';
         card.innerHTML =
             '<div style="display:flex;align-items:center;justify-content:space-between;">' +
-            '<span style="font-weight:700;color:' + c2 + ';font-size:.9rem;">#' + node.sequence_number + '</span><div>' + badge + '</div></div>' +
+            '<span style="font-weight:700;color:' + c2 + ';font-size:.8rem;">#' + node.sequence_number + '</span><div>' + badge + '</div></div>' +
             '<div class="stop-item-title">' + node.CustomerName + '</div>' +
             '<div class="stop-item-meta"><span>Code: ' + node.Code + '</span>' +
             '<span class="stop-item-badge" style="background:' + c2 + '15;color:' + c2 + ';">' + node.CustomerType + '</span></div>' +
-            '<div style="font-size:.75rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 ' + (node.ShopAddress || 'No Address') + '</div>' +
-            '<div style="font-size:.75rem;font-weight:600;color:' + c2 + ';">📞 Call Weight: ' + node.call_weight + '</div>';
+            '<div style="font-size:.65rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 ' + (node.ShopAddress || 'No Address') + '</div>' +
+            '<div style="font-size:.65rem;font-weight:600;color:' + c2 + ';">📞 Call Weight: ' + node.call_weight + '</div>';
         list.appendChild(card);
     });
     document.getElementById('stops-count').innerText = filtered.length;

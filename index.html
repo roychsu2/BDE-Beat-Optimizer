@@ -26,23 +26,24 @@
         /* Inline component styles adapted for new layout */
         .tabs-container { display:flex; flex-direction:column; gap:.75rem; margin-top:.5rem; }
         .week-tabs { display:flex; flex-wrap:wrap; background:rgba(241, 245, 249, 0.6); padding:4px; border-radius:8px; gap:4px; }
-        .tab-btn { flex:1; min-width:72px; padding:.4rem .3rem; border-radius:6px; border:none; background:transparent; font-size:.75rem; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:all .2s; text-align:center; line-height:1.3; }
+        .tab-btn { flex:1; min-width:80px; padding:0.5rem 0.25rem; border:none; background:transparent; font-size:0.75rem; font-weight:700; color:var(--text-secondary); cursor:pointer; border-radius:10px; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display:flex; flex-direction:column; align-items:center; gap:2px; }
+        .tab-btn:hover { background:rgba(255,255,255,0.6); color:var(--text-primary); }
         .tab-btn.active { background:white; color:var(--primary-color); box-shadow:0 2px 4px rgba(0,0,0,.04); }
-        .tab-btn .week-dates { font-size:.65rem; font-weight:400; color:#94a3b8; display:block; }
+        .tab-btn .week-dates { font-size:.6rem; font-weight:400; color:#94a3b8; display:block; }
         .tab-btn.active .week-dates { color:var(--primary-color); opacity:.7; }
-        .day-tabs { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom: 0.5rem; }
-        .day-btn { flex:1; min-width:60px; padding:0.6rem 0.25rem; border-radius:10px; border:1px solid transparent; background:rgba(241, 245, 249, 0.7); font-size:0.8rem; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align:center; }
+        .day-tabs { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom: 0.5rem; }
+        .day-btn { flex:1; min-width:55px; padding:0.5rem 0.2rem; border-radius:8px; border:1px solid transparent; background:rgba(241, 245, 249, 0.7); font-size:0.7rem; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align:center; }
         .day-btn:hover { background:rgba(226, 232, 240, 0.8); color:var(--text-primary); transform:translateY(-1px); }
-        .day-btn.active { background:var(--primary-color); color:white; border-color:var(--primary-hover); box-shadow:0 4px 12px var(--primary-glow); transform:translateY(-2px); }
-        .stops-list-container { flex-grow:1; overflow-y:auto; max-height:300px; border:none; border-radius:12px; background:transparent; padding:0.25rem; display:flex; flex-direction:column; gap:0.6rem; }
+        .day-btn.active { background:var(--primary-color); color:white; border-color:var(--primary-hover); box-shadow:0 4px 12px var(--primary-glow); transform:translateY(-1px); }
+        .stops-list-container { flex-grow:1; overflow-y:auto; max-height:280px; border:none; border-radius:12px; background:transparent; padding:0.25rem; display:flex; flex-direction:column; gap:0.5rem; }
         .stops-list-container::-webkit-scrollbar { width: 6px; }
         .stops-list-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); border-radius: 4px; }
         .stops-list-container::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
-        .stop-item-card { background:rgba(255,255,255,0.9); border:1px solid #e2e8f0; border-left: 4px solid var(--primary-color); border-radius:10px; padding:0.8rem; font-size:0.85rem; display:flex; flex-direction:column; gap:8px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-        .stop-item-card:hover { transform: translateX(2px) translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-color: #cbd5e1; }
-        .stop-item-title { font-weight:700; color:var(--text-primary); font-size: 0.9rem; }
-        .stop-item-meta { color:var(--text-secondary); font-size:0.75rem; display:flex; justify-content:space-between; align-items: center; }
-        .stop-item-badge { background:#f1f5f9; padding:3px 10px; border-radius:12px; font-size:0.7rem; font-weight:700; color:var(--text-primary); border: 1px solid #e2e8f0; }
+        .stop-item-card { background:rgba(255,255,255,0.9); border:1px solid #e2e8f0; border-left: 4px solid var(--primary-color); border-radius:8px; padding:0.6rem; font-size:0.75rem; display:flex; flex-direction:column; gap:6px; transition: all 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.02); }
+        .stop-item-card:hover { transform: translateX(2px) translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.05); border-color: #cbd5e1; }
+        .stop-item-title { font-weight:700; color:var(--text-primary); font-size: 0.8rem; }
+        .stop-item-meta { color:var(--text-secondary); font-size:0.65rem; display:flex; justify-content:space-between; align-items: center; }
+        .stop-item-badge { background:#f1f5f9; padding:2px 8px; border-radius:12px; font-size:0.6rem; font-weight:700; color:var(--text-primary); border: 1px solid #e2e8f0; }
         .hidden { display:none !important; }
         
         .filter-section { display:flex; flex-direction:column; gap:.4rem; padding:.75rem; background:rgba(255,255,255,0.4); border:1px solid var(--panel-border); border-radius:10px; margin-top:.25rem; }
@@ -296,16 +297,16 @@
                 <!-- Screen 2: Schedule Browser -->
                 <div class="panel-content hidden" id="screen-browser">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;">
-                        <h2 style="margin:0;">Interactive Schedule</h2>
-                        <span class="month-info-badge" id="month-display-badge">—</span>
+                        <h2 style="margin:0; font-size: 1.15rem;">Interactive Schedule</h2>
+                        <span class="month-info-badge" id="month-display-badge" style="font-size:0.7rem; padding: 4px 10px;">—</span>
                     </div>
-                    <div class="tabs-container">
-                        <div class="week-tabs" id="week-tabs-container"></div>
+                    <div class="tabs-container" style="padding: 6px;">
+                        <div class="week-tabs" id="week-tabs-container" style="gap: 4px;"></div>
                         <div class="day-tabs" id="day-tabs-container"></div>
                     </div>
-                    <div style="font-size:1rem;font-weight:700;color:var(--text-primary);margin:0.5rem 0 0.5rem 0.25rem;display:flex;align-items:center;justify-content:space-between;">
+                    <div style="font-size:0.9rem;font-weight:700;color:var(--text-primary);margin:0.5rem 0 0.5rem 0.25rem;display:flex;align-items:center;justify-content:space-between;">
                         <span>Daily Stops</span>
-                        <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary); background: #f1f5f9; padding:3px 10px; border-radius:20px;"><span id="stops-count">0</span> stops &bull; <span id="calls-count">0</span> calls</span>
+                        <span style="font-size:0.7rem; font-weight:600; color:var(--text-secondary); background: #f1f5f9; padding:2px 8px; border-radius:20px;"><span id="stops-count">0</span> stops &bull; <span id="calls-count">0</span> calls</span>
                     </div>
                     <div class="stops-list-container" id="stops-list"></div>
                     
