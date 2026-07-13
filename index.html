@@ -66,7 +66,7 @@
         .capacity-input:focus { border-color: var(--primary-color); }
         /* Hide spin buttons */
         .capacity-input::-webkit-outer-spin-button, .capacity-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .capacity-input[type=number] { -moz-appearance: textfield; }
+        .capacity-input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         .section-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
         .section-title-row h2 { margin-bottom: 0; }
     </style>
@@ -86,8 +86,8 @@
                 <h2>Welcome Back</h2>
                 <form onsubmit="handleLogin(event)">
                     <div class="input-group">
-                        <label>Username or Mobile ID</label>
-                        <input type="text" id="login-username" required placeholder="Enter your ID">
+                        <label>Email</label>
+                        <input type="email" id="login-email" required placeholder="Enter your email">
                     </div>
                     <div class="input-group">
                         <label>Password</label>
@@ -111,12 +111,8 @@
                 <h2>Create Account</h2>
                 <form onsubmit="handleSignup(event)">
                     <div class="input-group">
-                        <label>Username</label>
-                        <input type="text" id="signup-username" required placeholder="Choose a username">
-                    </div>
-                    <div class="input-group">
-                        <label>Mobile Number</label>
-                        <input type="tel" id="signup-mobile" required placeholder="Enter mobile number" pattern="[0-9]{10,15}">
+                        <label>Email</label>
+                        <input type="email" id="signup-email" required placeholder="Enter your email">
                     </div>
                     <div class="input-group">
                         <label>Password</label>
@@ -314,7 +310,7 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="auth.js"></script>
+    <script type="module" src="auth.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="app.js"></script>
