@@ -121,7 +121,7 @@ body {
 }
 
 .panel-content h2 {
-    font-size: 1.15rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
 }
@@ -132,7 +132,7 @@ body {
     padding: 0.65rem 1.25rem;
     border-radius: 8px;
     border: none;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -204,14 +204,14 @@ body {
     opacity: 0.8;
 }
 .drop-title {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 0.1rem;
 }
 .drop-desc {
     display: block;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--text-secondary);
     max-width: 200px;
     white-space: nowrap;
