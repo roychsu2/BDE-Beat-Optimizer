@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 mainApp.style.display = 'block';
                 // Fix Leaflet map grey background by recalculating size
                 setTimeout(() => {
-                    if (window.map) window.map.invalidateSize();
+                    if (window.leafletMap) window.leafletMap.invalidateSize();
                 }, 200);
             }
             if (authOverlay) authOverlay.style.display = 'none';

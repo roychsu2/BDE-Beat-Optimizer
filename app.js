@@ -186,6 +186,7 @@ function downloadTemplate() {
 // --- Map ---
 function initMap() {
     map = L.map('map', { zoomControl: false, attributionControl: false }).setView([22.7262854, 88.4599546], 11);
+    window.leafletMap = map; // Expose globally so auth.js can trigger resize
     L.control.zoom({ position: 'topright' }).addTo(map);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
     markerLayer = L.layerGroup().addTo(map);
