@@ -248,7 +248,8 @@ body {
 .status-pill-container {
     width: calc(100% - 400px);
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
+    padding-left: 24px;
     pointer-events: none;
     position: fixed;
     bottom: 24px;
