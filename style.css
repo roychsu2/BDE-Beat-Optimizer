@@ -246,13 +246,13 @@ body {
 
 /* Floating Status Pill */
 .status-pill-container {
-    width: 100%;
+    width: calc(100% - 400px);
     display: flex;
     justify-content: center;
     pointer-events: none;
     position: fixed;
     bottom: 24px;
-    left: 0;
+    left: 400px;
     z-index: 9999;
 }
 
