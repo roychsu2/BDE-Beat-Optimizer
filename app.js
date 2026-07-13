@@ -795,12 +795,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const mm = String(now.getMonth() + 1).padStart(2, '0');
     document.getElementById('beat-month').value = yy + '-' + mm;
 
-    // Default date range = first to last day of current month
-    const firstDay = new Date(yy, now.getMonth(), 1);
-    const lastDay = new Date(yy, now.getMonth() + 1, 0);
-    const toISO = d => d.toISOString().slice(0, 10);
-    document.getElementById('beat-start-date').value = toISO(firstDay);
-    document.getElementById('beat-end-date').value = toISO(lastDay);
+    // Default date range = today to last day of current month
+    const today = new Date();
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const formatLocalISO = d => {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    };
+    document.getElementById('beat-start-date').value = formatLocalISO(today);
+    document.getElementById('beat-end-date').value = formatLocalISO(lastDay);
 
     setupDragAndDrop('beat-dropzone', 'beat-file', 'beat-file-name', data => { rawSheetData = data; });
     document.getElementById('optimize-btn').addEventListener('click', optimizeRoutes);
