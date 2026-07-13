@@ -7,6 +7,14 @@ let activeDayName = null;
 let map = null;
 let markerLayer = null;
 let routeLineLayer = null;
+let customHolidays = [];
+
+function formatLocalISO(d) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
 
 // --- Constants ---
 const dayColors = {
@@ -29,7 +37,8 @@ function getWorkingDays(year, month) {
     for (let d = 1; d <= daysInMonth; d++) {
         const date = new Date(year, month - 1, d);
         const dow = date.getDay();
-        if (dow === 0) {
+        const dateStrForCheck = formatLocalISO(date);
+        if (dow === 0 || customHolidays.includes(dateStrForCheck)) {
             if (weekDaysList.length > 0) { allWeeks.push(weekDaysList); weekDaysList = []; }
         } else {
             weekDaysList.push({ date, dayName: DAY_NAMES[dow], dateStr: MONTH_NAMES[month - 1].slice(0, 3) + ' ' + d });
@@ -60,8 +69,9 @@ function getWorkingDaysInRange(startDate, endDate) {
 
     while (cur <= end) {
         const dow = cur.getDay();
-        if (dow === 0) {
-            // Sunday — close current week
+        const dateStrForCheck = formatLocalISO(cur);
+        if (dow === 0 || customHolidays.includes(dateStrForCheck)) {
+            // Sunday or Holiday — close current week
             if (weekDaysList.length > 0) { allWeeks.push(weekDaysList); weekDaysList = []; }
         } else {
             // Mon-Sat
@@ -798,14 +808,42 @@ document.addEventListener('DOMContentLoaded', () => {
     // Default date range = today to last day of current month
     const today = new Date();
     const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    const formatLocalISO = d => {
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        return `${yyyy}-${mm}-${dd}`;
-    };
     document.getElementById('beat-start-date').value = formatLocalISO(today);
     document.getElementById('beat-end-date').value = formatLocalISO(lastDay);
+
+    // Holiday handling
+    const holidayInput = document.getElementById('holiday-input');
+    const addHolidayBtn = document.getElementById('add-holiday-btn');
+    const holidayList = document.getElementById('holiday-list');
+
+    function renderHolidays() {
+        holidayList.innerHTML = '';
+        customHolidays.forEach((hDate, idx) => {
+            const span = document.createElement('span');
+            span.className = 'sub-pill';
+            span.style.cssText = 'display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--panel-border);';
+            span.innerHTML = `${hDate} <span style="cursor:pointer; color:var(--text-secondary); font-weight:bold; padding: 0 4px;" data-idx="${idx}">&times;</span>`;
+            holidayList.appendChild(span);
+        });
+    }
+
+    addHolidayBtn.addEventListener('click', () => {
+        const val = holidayInput.value;
+        if (val && !customHolidays.includes(val)) {
+            customHolidays.push(val);
+            customHolidays.sort();
+            renderHolidays();
+            holidayInput.value = '';
+        }
+    });
+
+    holidayList.addEventListener('click', e => {
+        if (e.target.tagName === 'SPAN' && e.target.hasAttribute('data-idx')) {
+            const idx = parseInt(e.target.getAttribute('data-idx'), 10);
+            customHolidays.splice(idx, 1);
+            renderHolidays();
+        }
+    });
 
     setupDragAndDrop('beat-dropzone', 'beat-file', 'beat-file-name', data => { rawSheetData = data; });
     document.getElementById('optimize-btn').addEventListener('click', optimizeRoutes);

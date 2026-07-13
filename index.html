@@ -248,6 +248,17 @@
                             </div>
                         </div>
 
+                        <div style="padding-bottom: 0.5rem;">
+                            <label>Holidays / Excluded Dates</label>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="date" id="holiday-input" style="flex:1; border: 1px solid var(--panel-border); border-radius: 6px; padding: 4px 8px; font-size: 0.8rem;" />
+                                <button type="button" id="add-holiday-btn" class="template-dl-btn" style="background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--panel-border);">Add</button>
+                            </div>
+                            <div id="holiday-list" style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;">
+                                <!-- Selected holidays will appear here -->
+                            </div>
+                        </div>
+
                         <div>
                             <label>Employee</label>
                             <select id="employee-filter">
