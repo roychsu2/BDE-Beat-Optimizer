@@ -54,7 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, (user) => {
         if (user) {
             // User is signed in
-            if (mainApp) mainApp.style.display = 'block';
+            if (mainApp) {
+                mainApp.style.display = 'block';
+                // Fix Leaflet map grey background by recalculating size
+                setTimeout(() => {
+                    if (window.map) window.map.invalidateSize();
+                }, 200);
+            }
             if (authOverlay) authOverlay.style.display = 'none';
             
             const userDisplay = document.getElementById('current-username-display');
