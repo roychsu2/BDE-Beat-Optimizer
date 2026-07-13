@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // TODO: Replace the following with your app's Firebase project configuration
 const firebaseConfig = {
@@ -14,6 +14,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 
 document.addEventListener('DOMContentLoaded', () => {
     const authOverlay = document.getElementById('auth-overlay');
@@ -108,6 +109,19 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 errEl.textContent = 'Failed to create account. ' + error.message;
             }
+        }
+    };
+    
+    // Google Sign-In Logic
+    window.handleGoogleLogin = async function() {
+        try {
+            await signInWithPopup(auth, googleProvider);
+        } catch (error) {
+            console.error("Google Login Error:", error);
+            const errElLogin = document.getElementById('login-error');
+            const errElSignup = document.getElementById('signup-error');
+            if (errElLogin) errElLogin.textContent = 'Google sign-in failed.';
+            if (errElSignup) errElSignup.textContent = 'Google sign-in failed.';
         }
     };
     
