@@ -819,10 +819,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderHolidays() {
         holidayList.innerHTML = '';
         customHolidays.forEach((hDate, idx) => {
+            const [y, m, d] = hDate.split('-');
+            const displayDate = `${d}-${m}-${y}`;
             const span = document.createElement('span');
             span.className = 'sub-pill';
             span.style.cssText = 'display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--panel-border);';
-            span.innerHTML = `${hDate} <span style="cursor:pointer; color:var(--text-secondary); font-weight:bold; padding: 0 4px;" data-idx="${idx}">&times;</span>`;
+            span.innerHTML = `${displayDate} <span style="cursor:pointer; color:var(--text-secondary); font-weight:bold; padding: 0 4px;" data-idx="${idx}">&times;</span>`;
             holidayList.appendChild(span);
         });
     }
