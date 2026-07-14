@@ -111,18 +111,18 @@
         .auth-divider::after { margin-left: 0.5rem; }
         #total-distance-badge {
             position: absolute;
-            top: 16px;
-            right: 16px;
+            top: 20px;
+            right: 60px;
             z-index: 1000;
             background: white;
-            padding: 8px 16px;
+            padding: 4px 10px;
             border-radius: 8px;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             color: #0f172a;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             display: none;
-            border: 2px solid #3b82f6;
+            border: 1px solid #e2e8f0;
         }
 
         /* Hide the default Leaflet Routing Machine itinerary box */
@@ -219,10 +219,10 @@
                     <div class="logo" style="display: flex; align-items: center; gap: 10px;">
                         <img src="logo.png" alt="OptiBeat" style="height: 32px; mix-blend-mode: multiply; width: auto; object-fit: contain;">
                     </div>
-                    <div class="user-profile-widget" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.7); padding: 4px 6px 4px 12px; border-radius: 30px; border: 1px solid var(--panel-border); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                        <span id="current-username-display" class="user-badge" style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary);"></span>
-                        <button onclick="handleLogout()" class="btn-logout" title="Logout" style="background: #f1f5f9; border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary); transition: all 0.2s;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <div class="user-profile-widget" style="display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.7); padding: 2px 4px 2px 8px; border-radius: 30px; border: 1px solid var(--panel-border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: -4px; margin-right: -4px;">
+                        <span id="current-username-display" class="user-badge" style="font-size: 0.7rem; font-weight: 600; color: var(--text-primary);"></span>
+                        <button onclick="handleLogout()" class="btn-logout" title="Logout" style="background: #f1f5f9; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary); transition: all 0.2s;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                         </button>
                     </div>
                 </div>
