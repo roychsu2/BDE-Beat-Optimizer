@@ -829,6 +829,11 @@ function renderActiveSelection() {
     let totalCalls = 0;
     filtered.forEach((node, idx) => {
         totalCalls += node.call_weight;
+        const isStart = idx === 0, isEnd = idx === filtered.length - 1;
+        let badge = '';
+        if (isStart) badge = '<span style="background:var(--success-color);color:white;padding:2px 8px;border-radius:12px;font-size:0.6rem;font-weight:700;">Start Point</span>';
+        if (isEnd) badge = '<span style="background:#ef4444;color:white;padding:2px 8px;border-radius:12px;font-size:0.6rem;font-weight:700;">End Point</span>';
+        
         const addressText = node.ShopAddress || 'No Address Available';
         
         const card = document.createElement('div');
@@ -837,6 +842,7 @@ function renderActiveSelection() {
             <div class="stop-card-top">
                 <div style="display:flex; align-items:center; gap: 8px;">
                     <span class="stop-index">#${node.sequence_number}</span>
+                    ${badge}
                 </div>
             </div>
             <div class="stop-card-mid">
