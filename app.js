@@ -9,6 +9,7 @@ let activeDayName = null;
 let map = null;
 let markerLayer = null;
 let routeLineLayer = null;
+let routingControl = null;
 let customHolidays = [];
 
 function formatLocalISO(d) {
@@ -780,6 +781,10 @@ function renderActiveSelection() {
 
     markerLayer.clearLayers();
     routeLineLayer.clearLayers();
+    if (routingControl) {
+        map.removeControl(routingControl);
+        routingControl = null;
+    }
     const oldLegend = document.querySelector('.map-legend');
     if (oldLegend) oldLegend.remove();
 
@@ -808,7 +813,23 @@ function renderActiveSelection() {
     });
 
     if (lineCoords.length > 1) {
-        routeLineLayer.addLayer(L.polyline(lineCoords, { color, weight: 3, opacity: 0.6, dashArray: '5, 8' }));
+        const waypoints = lineCoords.map(coord => L.latLng(coord[0], coord[1]));
+        routingControl = L.Routing.control({
+            waypoints: waypoints,
+            router: L.Routing.osrmv1({
+                serviceUrl: 'https://router.project-osrm.org/route/v1',
+                profile: 'driving'
+            }),
+            lineOptions: {
+                styles: [{ color: color, opacity: 0.8, weight: 5 }]
+            },
+            createMarker: function() { return null; },
+            show: true,
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: false,
+            showAlternatives: false
+        }).addTo(map);
     }
     if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
 
