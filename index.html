@@ -297,7 +297,10 @@
                 <!-- Screen 2: Schedule Browser -->
                 <div class="panel-content hidden" id="screen-browser">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;">
-                        <h2 style="margin:0; font-size: 1.15rem;">Interactive Schedule</h2>
+                        <div style="display:flex;align-items:center;gap:1rem;">
+                            <h2 style="margin:0; font-size: 1.15rem;">Interactive Schedule</h2>
+                            <select id="browser-employee-filter" onchange="onBrowserEmployeeChange(this.value)" style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--panel-border); font-size: 0.9rem; background: var(--bg-hover); color: var(--text-primary); cursor: pointer;"></select>
+                        </div>
                         <span class="month-info-badge" id="month-display-badge" style="font-size:0.7rem; padding: 4px 10px;">—</span>
                     </div>
                     <div class="tabs-container" style="padding: 6px;">

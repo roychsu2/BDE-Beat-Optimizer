@@ -1,6 +1,8 @@
 // --- State ---
 let rawSheetData = null;
 let optimizedResults = null;
+let optimizedResultsByEmployee = {};
+let activeBrowserEmployee = null;
 let beatSchedule = [];
 let activeWeekLabel = null;
 let activeDayName = null;
@@ -533,12 +535,60 @@ function optimizeRoutes() {
 
     if (filteredData.length === 0) { setStatus('No data after filter', 'error', 'No records match the selected filters.'); return; }
 
-    const normalised = cleanAndNormalize(filteredData);
+    optimizedResultsByEmployee = {};
+    let employeeNames = [];
+
+    if (empFilter === '__ALL__') {
+        // Group by employee
+        const empMap = {};
+        filteredData.forEach(r => {
+            const name = String(r['Employee Name'] || '').trim() || 'Unknown_Employee';
+            if (!empMap[name]) empMap[name] = [];
+            empMap[name].push(r);
+        });
+        employeeNames = Object.keys(empMap).sort();
+        for (const name of employeeNames) {
+            optimizedResultsByEmployee[name] = runOptimizationForData(empMap[name], numBeats);
+        }
+    } else {
+        employeeNames = [empFilter];
+        optimizedResultsByEmployee[empFilter] = runOptimizationForData(filteredData, numBeats);
+    }
+
+    if (employeeNames.length === 0) { setStatus('Optimisation Error', 'error', 'No valid records found.'); return; }
+
+    // Populate browser dropdown
+    const browserSel = document.getElementById('browser-employee-filter');
+    browserSel.innerHTML = '';
+    employeeNames.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        browserSel.appendChild(opt);
+    });
+
+    activeBrowserEmployee = employeeNames[0];
+    optimizedResults = optimizedResultsByEmployee[activeBrowserEmployee];
+    browserSel.value = activeBrowserEmployee;
+
+    buildWeekDayTabs();
+    document.getElementById('screen-upload').classList.add('hidden');
+    document.getElementById('screen-browser').classList.remove('hidden');
+    document.getElementById('month-display-badge').textContent = periodLabel + ' · ' + numBeats + ' working days';
+
+    updateDashboardForActiveEmployee();
+    setStatus('Optimization Complete', 'active', periodLabel + ' | ' + numBeats + ' beats per employee');
+}
+
+function runOptimizationForData(empData, numBeats) {
+    const normalised = cleanAndNormalize(empData);
     const { combinedWithNodeId, uniqueNodes } = buildUniqueNodes(normalised);
     const validNodes = uniqueNodes.filter(n => n.latitude !== 0 && n.longitude !== 0);
     const zeroNodes = uniqueNodes.filter(n => n.latitude === 0 || n.longitude === 0);
 
-    if (validNodes.length === 0) { setStatus('Optimisation Error', 'error', 'No valid coordinates found.'); return; }
+    if (validNodes.length === 0) { 
+        return { finalNodes: [], finalRecords: [], avgCalls: 0 };
+    }
 
     const k = Math.min(numBeats, validNodes.length);
     let nodeClusterMap = {}, centroids = [];
@@ -605,18 +655,36 @@ function optimizeRoutes() {
         });
     });
     finalRecords.sort((a, b) => a.sequence_number - b.sequence_number);
-    optimizedResults = { finalNodes, finalRecords };
-
-    buildWeekDayTabs();
-    document.getElementById('screen-upload').classList.add('hidden');
-    document.getElementById('screen-browser').classList.remove('hidden');
-    document.getElementById('month-display-badge').textContent = periodLabel + ' · ' + numBeats + ' working days';
-
     const totalW = validNodes.reduce((s, n) => s + n.call_weight, 0);
-    const avgCalls = totalW / k;
-    updateDashboard(finalNodes, finalRecords, avgCalls, numBeats);
+    const avgCalls = k > 0 ? totalW / k : 0;
+    return { finalNodes, finalRecords, avgCalls, validNodesCount: validNodes.length };
+}
+
+function updateDashboardForActiveEmployee() {
+    if (!optimizedResults) return;
+    updateDashboard(optimizedResults.finalNodes, optimizedResults.finalRecords, optimizedResults.avgCalls, beatSchedule.length);
     renderActiveSelection();
-    setStatus('Optimization Complete', 'active', periodLabel + ' | ' + numBeats + ' beats | Avg ' + avgCalls.toFixed(1) + ' calls/day');
+}
+
+function onBrowserEmployeeChange(employeeName) {
+    if (optimizedResultsByEmployee[employeeName]) {
+        activeBrowserEmployee = employeeName;
+        optimizedResults = optimizedResultsByEmployee[employeeName];
+        updateDashboardForActiveEmployee();
+        
+        // Reset to first tab
+        if (beatSchedule.length > 0) {
+            const firstWeek = beatSchedule[0].weekLabel;
+            const firstDay = beatSchedule[0].dayName;
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(t => t.classList.remove('active'));
+            if (tabs.length > 0) tabs[0].classList.add('active');
+            activeWeekLabel = firstWeek;
+            activeDayName = firstDay;
+            buildDayTabs(firstWeek);
+            renderActiveSelection();
+        }
+    }
 }
 
 // --- Build week/day tabs dynamically ---
@@ -759,40 +827,57 @@ function renderActiveSelection() {
     document.getElementById('calls-count').innerText = totalCalls;
 }
 
-// --- Download Excel ---
 function downloadExcel() {
-    if (!optimizedResults) return;
+    if (!optimizedResultsByEmployee || Object.keys(optimizedResultsByEmployee).length === 0) return;
     const wb = XLSX.utils.book_new();
-    const rows = optimizedResults.finalRecords.map(r => {
-        const out = Object.assign({}, r);
-        ['latitude', 'longitude', 'mobile_clean', 'address_clean', 'is_imputed'].forEach(k => delete out[k]);
-        const aliases = { node_id: 'Node ID', week: 'Week Cycle', beat_day: 'Beat Day', dateStr: 'Beat Date', cluster: 'Cluster ID', call_weight: 'Call Weight', sequence_number: 'Daily Call Sequence' };
-        const mapped = {};
-        Object.keys(out).forEach(key => { mapped[aliases[key] || key] = out[key]; });
-        return mapped;
-    });
 
     const beatOrder = {};
     beatSchedule.forEach((b, i) => { beatOrder[b.weekLabel + '|' + b.dayName] = i; });
-    rows.sort((a, b) => {
-        const oA = beatOrder[(a['Week Cycle'] || '') + '|' + (a['Beat Day'] || '')] || 999;
-        const oB = beatOrder[(b['Week Cycle'] || '') + '|' + (b['Beat Day'] || '')] || 999;
-        return oA !== oB ? oA - oB : ((a['Daily Call Sequence'] || 0) - (b['Daily Call Sequence'] || 0));
-    });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Optimized Beats');
 
-    const seen = {}, summaryRows = [];
-    beatSchedule.forEach(b => {
-        const key = b.weekLabel + '|' + b.dayName;
-        if (seen[key]) return; seen[key] = true;
-        const dayNodes = optimizedResults.finalNodes.filter(n => n.week === b.weekLabel && n.beat_day === b.dayName);
-        summaryRows.push({ Week: b.weekLabel, Date: b.dateStr, Day: b.dayName, Stops: dayNodes.length, 'Total Calls': dayNodes.reduce((s, n) => s + n.call_weight, 0) });
-    });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summaryRows), 'Daily Summary');
+    Object.keys(optimizedResultsByEmployee).forEach(emp => {
+        const results = optimizedResultsByEmployee[emp];
+        if (!results || !results.finalRecords || results.finalRecords.length === 0) return;
 
-    const mp = document.getElementById('beat-month').value.split('-');
-    const mname = MONTH_NAMES[parseInt(mp[1]) - 1] || 'Month';
-    XLSX.writeFile(wb, 'BDE_BeatPlan_' + mname + '_' + mp[0] + '.xlsx');
+        const rows = results.finalRecords.map(r => {
+            const out = Object.assign({}, r);
+            ['latitude', 'longitude', 'mobile_clean', 'address_clean', 'is_imputed'].forEach(k => delete out[k]);
+            const aliases = { node_id: 'Node ID', week: 'Week Cycle', beat_day: 'Beat Day', dateStr: 'Beat Date', cluster: 'Cluster ID', call_weight: 'Call Weight', sequence_number: 'Daily Call Sequence' };
+            const mapped = {};
+            Object.keys(out).forEach(key => { mapped[aliases[key] || key] = out[key]; });
+            return mapped;
+        });
+
+        rows.sort((a, b) => {
+            const oA = beatOrder[(a['Week Cycle'] || '') + '|' + (a['Beat Day'] || '')] || 999;
+            const oB = beatOrder[(b['Week Cycle'] || '') + '|' + (b['Beat Day'] || '')] || 999;
+            return oA !== oB ? oA - oB : ((a['Daily Call Sequence'] || 0) - (b['Daily Call Sequence'] || 0));
+        });
+
+        let sheetName = emp.substring(0, 31); // Excel sheet names max 31 chars
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), sheetName);
+    });
+
+    let empName = "All_Employees";
+    const empSelect = document.getElementById('employee-filter');
+    if (empSelect && empSelect.selectedIndex >= 0) {
+        empName = empSelect.options[empSelect.selectedIndex].text;
+        if (empName === "All Employees") empName = "All_Employees";
+    }
+    empName = empName.replace(/[\/\\?%*:|"<>]/g, ''); // sanitize
+
+    let dateStr = "";
+    if (currentPlanMode === 'full') {
+        const mp = document.getElementById('beat-month').value.split('-');
+        const mname = MONTH_NAMES[parseInt(mp[1]) - 1] || 'Month';
+        dateStr = `${mname}_${mp[0]}`;
+    } else {
+        const s = document.getElementById('beat-start-date').value;
+        const e = document.getElementById('beat-end-date').value;
+        dateStr = `${s}_to_${e}`;
+    }
+
+    const fileName = `${empName}_${dateStr}.xlsx`;
+    XLSX.writeFile(wb, fileName);
 }
 
 // --- Event Wiring ---
