@@ -30,6 +30,25 @@ const dayColors = {
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
+function formatDDMMYYYYFromDate(date) {
+    const d = String(date.getDate()).padStart(2, '0');
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const y = date.getFullYear();
+    return `${d}-${m}-${y}`;
+}
+
+function formatDDMMYYYYFromInput(dateString) {
+    if (!dateString) return "";
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`; // YYYY-MM-DD to DD-MM-YYYY
+    }
+    if (parts.length === 2) {
+        return `${parts[1]}-${parts[0]}`; // YYYY-MM to MM-YYYY
+    }
+    return dateString;
+}
+
 // --- Calendar: all Mon-Sat days in a full month ---
 function getWorkingDays(year, month) {
     const result = [];
@@ -43,7 +62,7 @@ function getWorkingDays(year, month) {
         if (dow === 0 || customHolidays.includes(dateStrForCheck)) {
             if (weekDaysList.length > 0) { allWeeks.push(weekDaysList); weekDaysList = []; }
         } else {
-            weekDaysList.push({ date, dayName: DAY_NAMES[dow], dateStr: MONTH_NAMES[month - 1].slice(0, 3) + ' ' + d });
+            weekDaysList.push({ date, dayName: DAY_NAMES[dow], dateStr: formatDDMMYYYYFromDate(date) });
         }
     }
     if (weekDaysList.length > 0) allWeeks.push(weekDaysList);
@@ -77,12 +96,10 @@ function getWorkingDaysInRange(startDate, endDate) {
             if (weekDaysList.length > 0) { allWeeks.push(weekDaysList); weekDaysList = []; }
         } else {
             // Mon-Sat
-            const d = cur.getDate();
-            const mon = cur.getMonth();
             weekDaysList.push({
                 date: new Date(cur),
                 dayName: DAY_NAMES[dow],
-                dateStr: MONTH_NAMES[mon].slice(0, 3) + ' ' + d
+                dateStr: formatDDMMYYYYFromDate(cur)
             });
         }
         cur.setDate(cur.getDate() + 1);
@@ -701,7 +718,7 @@ function buildWeekDayTabs() {
         const btn = document.createElement('button');
         btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
         btn.setAttribute('data-week', wl);
-        btn.innerHTML = wl + '<span class="week-dates">' + weeksMap[wl] + '</span>';
+        btn.innerHTML = `<span>${wl}</span><span class="week-dates">${weeksMap[wl]}</span>`;
         btn.addEventListener('click', () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -726,7 +743,13 @@ function buildDayTabs(weekLabel) {
         btn.className = 'day-btn' + (i === 0 ? ' active' : '');
         btn.setAttribute('data-week', beat.weekLabel);
         btn.setAttribute('data-day', beat.dayName);
-        btn.textContent = beat.dayName.slice(0, 3) + ' ' + beat.date.getDate();
+        
+        const shortDay = beat.dayName.slice(0, 3);
+        const dayNum = beat.date.getDate();
+        const monthStr = MONTH_NAMES[beat.date.getMonth()].slice(0, 3);
+        
+        btn.innerHTML = `<span class="day-name">${shortDay}</span><span class="day-date">${dayNum} ${monthStr}</span>`;
+        
         btn.addEventListener('click', () => {
             document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -806,21 +829,41 @@ function renderActiveSelection() {
     let totalCalls = 0;
     filtered.forEach((node, idx) => {
         totalCalls += node.call_weight;
-        const c2 = dayColors[node.beat_day] || color;
         const isStart = idx === 0, isEnd = idx === filtered.length - 1;
-        let badge = '';
-        if (isStart) badge = '<span style="background:#22c55e;color:white;padding:1px 6px;border-radius:4px;font-size:.55rem;font-weight:700;margin-right:6px;">STARTING CALL</span>';
-        if (isEnd) badge = '<span style="background:#ef4444;color:white;padding:1px 6px;border-radius:4px;font-size:.55rem;font-weight:700;margin-right:6px;">ENDING CALL</span>';
+        let badge = '<span style="background:var(--success-color);color:white;padding:2px 8px;border-radius:12px;font-size:0.6rem;font-weight:700;">In Progress</span>';
+        if (isStart) badge = '<span style="background:var(--success-color);color:white;padding:2px 8px;border-radius:12px;font-size:0.6rem;font-weight:700;">Start Point</span>';
+        if (isEnd) badge = '<span style="background:#ef4444;color:white;padding:2px 8px;border-radius:12px;font-size:0.6rem;font-weight:700;">End Point</span>';
+        
+        const addressText = node.ShopAddress || 'No Address Available';
+        
         const card = document.createElement('div');
         card.className = 'stop-item-card';
-        card.innerHTML =
-            '<div style="display:flex;align-items:center;justify-content:space-between;">' +
-            '<span style="font-weight:700;color:' + c2 + ';font-size:.8rem;">#' + node.sequence_number + '</span><div>' + badge + '</div></div>' +
-            '<div class="stop-item-title">' + node.CustomerName + '</div>' +
-            '<div class="stop-item-meta"><span>Code: ' + node.Code + '</span>' +
-            '<span class="stop-item-badge" style="background:' + c2 + '15;color:' + c2 + ';">' + node.CustomerType + '</span></div>' +
-            '<div style="font-size:.65rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 ' + (node.ShopAddress || 'No Address') + '</div>' +
-            '<div style="font-size:.65rem;font-weight:600;color:' + c2 + ';">📞 Call Weight: ' + node.call_weight + '</div>';
+        card.innerHTML = `
+            <div class="stop-card-top">
+                <div style="display:flex; align-items:center; gap: 8px;">
+                    <span class="stop-index">#${node.sequence_number}</span>
+                    ${badge}
+                </div>
+                <button class="btn-start-call">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                    START CALL
+                </button>
+            </div>
+            <div class="stop-card-mid">
+                <div class="stop-merchant-name">${node.CustomerName}</div>
+                <span class="stop-type-badge">${node.CustomerType}</span>
+            </div>
+            <div class="stop-card-bottom">
+                <div class="stop-address" title="${addressText}">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    ${addressText}
+                </div>
+                <div class="stop-weight">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    Weight: ${node.call_weight}
+                </div>
+            </div>
+        `;
         list.appendChild(card);
     });
     document.getElementById('stops-count').innerText = filtered.length;
@@ -867,13 +910,12 @@ function downloadExcel() {
 
     let dateStr = "";
     if (currentPlanMode === 'full') {
-        const mp = document.getElementById('beat-month').value.split('-');
-        const mname = MONTH_NAMES[parseInt(mp[1]) - 1] || 'Month';
-        dateStr = `${mname}_${mp[0]}`;
+        const val = document.getElementById('beat-month').value;
+        dateStr = formatDDMMYYYYFromInput(val);
     } else {
         const s = document.getElementById('beat-start-date').value;
         const e = document.getElementById('beat-end-date').value;
-        dateStr = `${s}_to_${e}`;
+        dateStr = `${formatDDMMYYYYFromInput(s)}_to_${formatDDMMYYYYFromInput(e)}`;
     }
 
     const fileName = `${empName}_${dateStr}.xlsx`;
@@ -935,6 +977,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDragAndDrop('beat-dropzone', 'beat-file', 'beat-file-name', data => { rawSheetData = data; });
     document.getElementById('optimize-btn').addEventListener('click', optimizeRoutes);
     document.getElementById('download-btn').addEventListener('click', downloadExcel);
+    
+    // Day Carousel Listeners
+    document.getElementById('carousel-left').addEventListener('click', () => {
+        const container = document.getElementById('day-tabs-container');
+        if (container) container.scrollBy({ left: -150, behavior: 'smooth' });
+    });
+    document.getElementById('carousel-right').addEventListener('click', () => {
+        const container = document.getElementById('day-tabs-container');
+        if (container) container.scrollBy({ left: 150, behavior: 'smooth' });
+    });
 
     document.getElementById('back-upload-btn').addEventListener('click', () => {
         document.getElementById('screen-browser').classList.add('hidden');
