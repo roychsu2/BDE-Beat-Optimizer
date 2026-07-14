@@ -428,7 +428,12 @@ function balanceClusters(nodes, initialMap, centroids, k) {
     // Strict ±10% margin based on user input
     const margin = Math.round(targetCalls * 0.10);
     const tMin = targetCalls - margin;
-    const tMax = targetCalls + margin;
+    let tMax = targetCalls + margin;
+
+    // If mathematically impossible to keep under tMax, adjust it slightly above average
+    if (avgW > tMax) {
+        tMax = Math.ceil(avgW);
+    }
 
     for (let iter = 0; iter < 300; iter++) {
         const wts = new Array(k).fill(0);
@@ -439,22 +444,36 @@ function balanceClusters(nodes, initialMap, centroids, k) {
 
         const maxNodes = nodes.filter(n => assigns[n.node_id] === maxC);
         let bestId = null, bestC = null, bestInc = Infinity;
+        
         maxNodes.forEach(node => {
             const dCur = (node.latitude - centroids[maxC].lat) ** 2 + (node.longitude - centroids[maxC].lon) ** 2;
             for (let c = 0; c < k; c++) {
-                if (wts[c] < tMax) {
+                // Ensure we do not overshoot tMax when adding this node
+                if (c !== maxC && (wts[c] + node.call_weight <= tMax)) {
                     const dNew = (node.latitude - centroids[c].lat) ** 2 + (node.longitude - centroids[c].lon) ** 2;
                     if (dNew - dCur < bestInc) { bestInc = dNew - dCur; bestId = node.node_id; bestC = c; }
                 }
             }
         });
+
+        // Fallback: if we are stuck but maxC is way larger than minC, forcefully move a small node to minC
+        if (bestId === null && wts[maxC] - wts[minC] > 3) {
+            let smallestNode = maxNodes.reduce((min, n) => (n.call_weight < min.call_weight ? n : min), maxNodes[0]);
+            if (smallestNode) {
+                bestId = smallestNode.node_id;
+                bestC = minC;
+            }
+        }
+
         if (bestId !== null) {
             assigns[bestId] = bestC;
             for (let c = 0; c < k; c++) {
                 const cn = nodes.filter(n => assigns[n.node_id] === c);
                 if (cn.length) centroids[c] = { lat: cn.reduce((s, n) => s + n.latitude, 0) / cn.length, lon: cn.reduce((s, n) => s + n.longitude, 0) / cn.length };
             }
-        } else break;
+        } else {
+            break;
+        }
     }
     return { nodeClusterMap: assigns, centroids };
 }
