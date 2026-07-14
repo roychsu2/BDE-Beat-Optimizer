@@ -1055,6 +1055,15 @@ document.addEventListener('DOMContentLoaded', () => {
         setStatus('Ready', 'ready', 'Upload files to begin');
         markerLayer.clearLayers();
         routeLineLayer.clearLayers();
+        if (routingControl) {
+            map.removeControl(routingControl);
+            routingControl = null;
+        }
+        const distBadge = document.getElementById('total-distance-badge');
+        if (distBadge) {
+            distBadge.style.display = 'none';
+            distBadge.innerHTML = '';
+        }
         const ol = document.querySelector('.map-legend');
         if (ol) ol.remove();
     });
