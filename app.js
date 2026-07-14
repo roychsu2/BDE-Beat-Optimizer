@@ -785,6 +785,8 @@ function renderActiveSelection() {
         map.removeControl(routingControl);
         routingControl = null;
     }
+    const distBadge = document.getElementById('total-distance-badge');
+    if (distBadge) distBadge.style.display = 'none';
     const oldLegend = document.querySelector('.map-legend');
     if (oldLegend) oldLegend.remove();
 
@@ -830,6 +832,18 @@ function renderActiveSelection() {
             fitSelectedRoutes: false,
             showAlternatives: false
         }).addTo(map);
+
+        routingControl.on('routesfound', function(e) {
+            const routes = e.routes;
+            if (routes && routes.length > 0) {
+                const totalDistance = (routes[0].summary.totalDistance / 1000).toFixed(1);
+                const badge = document.getElementById('total-distance-badge');
+                if (badge) {
+                    badge.innerHTML = totalDistance + ' km';
+                    badge.style.display = 'block';
+                }
+            }
+        });
     }
     if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
 
