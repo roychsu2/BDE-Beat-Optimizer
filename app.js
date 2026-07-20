@@ -313,7 +313,7 @@ function cleanAndNormalize(data) {
         return Object.assign({}, row, {
             latitude: lat, longitude: lon, is_imputed: isImputed, call_weight: weight,
             pin_code: String(row['PIN Code'] || '').trim(),
-            head_quarter: String(row['Head Quarter'] || '').trim(),
+            head_quarter: String(row['Head Quarter/City'] || row['Head Quarter'] || '').trim(),
             mobile_clean: String(row['Mobile'] || '').replace(/\D/g, '').trim(),
             address_clean: String(row['Shop Address'] || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim()
         });
@@ -984,8 +984,8 @@ function downloadExcel() {
 
         const rows = results.finalRecords.map(r => {
             const out = Object.assign({}, r);
-            ['latitude', 'longitude', 'mobile_clean', 'address_clean', 'is_imputed'].forEach(k => delete out[k]);
-            const aliases = { node_id: 'Node ID', week: 'Week Cycle', beat_day: 'Beat Day', dateStr: 'Beat Date', cluster: 'Cluster ID', call_weight: 'Call Weight', sequence_number: 'Daily Call Sequence' };
+            ['latitude', 'longitude', 'mobile_clean', 'address_clean', 'is_imputed', 'Head Quarter', 'Head Quarter/City'].forEach(k => delete out[k]);
+            const aliases = { node_id: 'Node ID', week: 'Week Cycle', beat_day: 'Beat Day', dateStr: 'Beat Date', cluster: 'Cluster ID', call_weight: 'Call Weight', sequence_number: 'Daily Call Sequence', head_quarter: 'Head Quarter/City' };
             const mapped = {};
             Object.keys(out).forEach(key => { mapped[aliases[key] || key] = out[key]; });
             return mapped;

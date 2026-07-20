@@ -17,7 +17,7 @@ def clean_and_normalize(df):
     
     # Required columns map
     required_cols = [
-        "Employee Name", "Employee Code", "Head Quarter", "Customer Name", 
+        "Employee Name", "Employee Code", "Head Quarter/City", "Customer Name", 
         "Code", "Customer Type", "Class", "Person", "Area", "Mobile", 
         "Shop Address", "PIN Code", "LAT LONG"
     ]
@@ -120,8 +120,8 @@ def build_unique_nodes(df_all):
         mobile_match = (mobile != '') & (df_all['mobile_clean'] == mobile)
         address_match = (address != '') & (df_all['address_clean'] == address)
         
-        hq = str(row.get('Head Quarter', '')).strip()
-        hq_match = (df_all['Head Quarter'].astype(str).str.strip() == hq) | (df_all['Head Quarter'].isna() & (hq == 'nan' or hq == ''))
+        hq = str(row.get('Head Quarter/City', '')).strip()
+        hq_match = (df_all['Head Quarter/City'].astype(str).str.strip() == hq) | (df_all['Head Quarter/City'].isna() & (hq == 'nan' or hq == ''))
         final_match = (coord_match | mobile_match | address_match) & hq_match
         
         matched_indices = df_all[mask & final_match].index
@@ -138,7 +138,7 @@ def build_unique_nodes(df_all):
         'latitude': 'mean',
         'longitude': 'mean',
         'call_weight': 'sum',
-        'Head Quarter': 'first',
+        'Head Quarter/City': 'first',
         'Code': lambda x: ';'.join(x.astype(str).unique()),
         'Customer Name': lambda x: ' / '.join(x.astype(str).unique()),
         'Customer Type': lambda x: ';'.join(x.astype(str).unique()),
@@ -271,26 +271,26 @@ def main():
         
     print("Clustering stops into 24 daily beats (4 weeks * 6 days)...")
     total_beats = 24
-    cluster_nodes['Head Quarter'] = cluster_nodes['Head Quarter'].fillna('Unassigned')
-    territories = cluster_nodes['Head Quarter'].unique()
+    cluster_nodes['Head Quarter/City'] = cluster_nodes['Head Quarter/City'].fillna('Unassigned')
+    territories = cluster_nodes['Head Quarter/City'].unique()
     
     beat_allocations = {hq: 0 for hq in territories}
     unallocated_beats = total_beats
     total_valid = len(cluster_nodes)
     
     for hq in territories:
-        hq_nodes = cluster_nodes[cluster_nodes['Head Quarter'] == hq]
+        hq_nodes = cluster_nodes[cluster_nodes['Head Quarter/City'] == hq]
         alloc = int(round((len(hq_nodes) / total_valid) * total_beats))
         beat_allocations[hq] = alloc
         unallocated_beats -= alloc
         
     while unallocated_beats > 0:
-        largest_hq = max(territories, key=lambda hq: len(cluster_nodes[cluster_nodes['Head Quarter'] == hq]))
+        largest_hq = max(territories, key=lambda hq: len(cluster_nodes[cluster_nodes['Head Quarter/City'] == hq]))
         beat_allocations[largest_hq] += 1
         unallocated_beats -= 1
         
     while unallocated_beats < 0:
-        largest_hq = max(territories, key=lambda hq: len(cluster_nodes[cluster_nodes['Head Quarter'] == hq]))
+        largest_hq = max(territories, key=lambda hq: len(cluster_nodes[cluster_nodes['Head Quarter/City'] == hq]))
         if beat_allocations[largest_hq] > 0:
             beat_allocations[largest_hq] -= 1
             unallocated_beats += 1
@@ -299,7 +299,7 @@ def main():
     balanced_labels = np.zeros(len(cluster_nodes), dtype=int)
     
     for hq in territories:
-        hq_mask = (cluster_nodes['Head Quarter'] == hq)
+        hq_mask = (cluster_nodes['Head Quarter/City'] == hq)
         hq_nodes = cluster_nodes[hq_mask]
         n_clusters = beat_allocations[hq]
         

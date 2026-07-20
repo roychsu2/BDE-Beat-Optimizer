@@ -45,7 +45,7 @@ lat_longs = [f"{lat:.7f},{lon:.7f}" for lat, lon in zip(lats, lons)]
 mock_data = {
     "Employee Name": ["Raja Das"] * n_records,
     "Employee Code": [100964] * n_records,
-    "Head Quarter": ["Kolkata"] * n_records,
+    "Head Quarter/City": ["Kolkata"] * n_records,
     "Customer Name": names,
     "Code": [f"B-CODE{1000+i}" for i in range(n_records)],
     "Customer Type": type_choices,
