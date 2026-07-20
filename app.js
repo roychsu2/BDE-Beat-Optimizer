@@ -637,7 +637,7 @@ function runOptimizationForData(empData, numBeats) {
     const clusterToBeat = {};
     let currentClusterIdx = 0;
     
-    // 1. Group by HQ / territory
+    // 1. Group by HQ / territory and allocate beats proportionally
     const territoryNodes = {};
     validNodes.forEach(n => {
         const hq = n.head_quarter || "Unassigned";
@@ -645,26 +645,66 @@ function runOptimizationForData(empData, numBeats) {
         territoryNodes[hq].push(n);
     });
     
-    const territories = Object.keys(territoryNodes);
+    let territories = Object.keys(territoryNodes);
     let beatAllocations = {};
-    territories.forEach(hq => beatAllocations[hq] = []);
-
     let unallocatedBeats = [...beatSchedule];
-    
-    // Distribute unallocated beats proportionally based on node counts
-    if (unallocatedBeats.length > 0) {
-        const totalValid = validNodes.length;
+    const numB = unallocatedBeats.length;
+
+    if (numB > 0) {
+        const terrStats = {};
+        let totalWeightAll = 0;
         territories.forEach(hq => {
-            const target = Math.round((territoryNodes[hq].length / totalValid) * unallocatedBeats.length);
-            for(let i=0; i<target && unallocatedBeats.length > 0; i++) {
-                beatAllocations[hq].push(unallocatedBeats.shift());
+            const nodes = territoryNodes[hq];
+            const weight = nodes.reduce((s, n) => s + n.call_weight, 0);
+            const lat = nodes.reduce((s, n) => s + n.latitude, 0) / nodes.length;
+            const lon = nodes.reduce((s, n) => s + n.longitude, 0) / nodes.length;
+            terrStats[hq] = { weight, lat, lon, nodes, allocated: 0 };
+            totalWeightAll += weight;
+        });
+
+        if (totalWeightAll > 0) {
+            territories.forEach(hq => {
+                terrStats[hq].exactBeats = (terrStats[hq].weight / totalWeightAll) * numB;
+                terrStats[hq].allocated = Math.floor(terrStats[hq].exactBeats);
+                terrStats[hq].remainder = terrStats[hq].exactBeats - terrStats[hq].allocated;
+            });
+            
+            let allocatedCount = territories.reduce((s, hq) => s + terrStats[hq].allocated, 0);
+            let sortedByRemainder = [...territories].sort((a, b) => terrStats[b].remainder - terrStats[a].remainder);
+            
+            for (let i = 0; i < numB - allocatedCount; i++) {
+                terrStats[sortedByRemainder[i]].allocated++;
+            }
+        } else {
+            terrStats[territories[0]].allocated = numB;
+        }
+
+        const validBeatHqs = territories.filter(hq => terrStats[hq].allocated > 0);
+        const zeroBeatHqs = territories.filter(hq => terrStats[hq].allocated === 0);
+        
+        zeroBeatHqs.forEach(zhq => {
+            if (validBeatHqs.length > 0) {
+                let bestHq = validBeatHqs[0];
+                let minD = Infinity;
+                validBeatHqs.forEach(vhq => {
+                    const d = (terrStats[zhq].lat - terrStats[vhq].lat)**2 + (terrStats[zhq].lon - terrStats[vhq].lon)**2;
+                    if (d < minD) { minD = d; bestHq = vhq; }
+                });
+                territoryNodes[bestHq] = territoryNodes[bestHq].concat(territoryNodes[zhq]);
+                delete territoryNodes[zhq];
             }
         });
-        // Any leftovers go to largest territory
-        while (unallocatedBeats.length > 0) {
-            const largestHq = territories.reduce((a, b) => territoryNodes[a].length > territoryNodes[b].length ? a : b);
-            beatAllocations[largestHq].push(unallocatedBeats.shift());
-        }
+        
+        territories = Object.keys(territoryNodes);
+        territories.forEach(hq => {
+            beatAllocations[hq] = [];
+            const count = terrStats[hq] ? terrStats[hq].allocated : 0; 
+            for (let i = 0; i < count; i++) {
+                if (unallocatedBeats.length > 0) {
+                    beatAllocations[hq].push(unallocatedBeats.shift());
+                }
+            }
+        });
     }
 
     // 2. Optimize each territory separately
