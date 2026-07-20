@@ -38,6 +38,12 @@ function formatDDMMYYYYFromDate(date) {
     return `${d}-${m}-${y}`;
 }
 
+function formatShortDate(date) {
+    const d = String(date.getDate()).padStart(2, '0');
+    const m = MONTH_NAMES[date.getMonth()].slice(0, 3);
+    return `${d} ${m}`;
+}
+
 function formatDDMMYYYYFromInput(dateString) {
     if (!dateString) return "";
     const parts = dateString.split('-');
@@ -71,7 +77,7 @@ function getWorkingDays(year, month) {
     let beatIndex = 0;
     allWeeks.forEach((weekDays, wi) => {
         const weekLabel = 'Week ' + (wi + 1);
-        const weekDates = weekDays[0].dateStr + ' - ' + weekDays[weekDays.length - 1].dateStr;
+        const weekDates = formatShortDate(weekDays[0].date) + ' - ' + formatShortDate(weekDays[weekDays.length - 1].date);
         weekDays.forEach(wd => {
             result.push({ weekLabel, weekDates, dayName: wd.dayName, date: wd.date, dateStr: wd.dateStr, beatIndex });
             beatIndex++;
@@ -110,7 +116,7 @@ function getWorkingDaysInRange(startDate, endDate) {
     let beatIndex = 0;
     allWeeks.forEach((weekDays, wi) => {
         const weekLabel = 'Week ' + (wi + 1);
-        const weekDates = weekDays[0].dateStr + ' - ' + weekDays[weekDays.length - 1].dateStr;
+        const weekDates = formatShortDate(weekDays[0].date) + ' - ' + formatShortDate(weekDays[weekDays.length - 1].date);
         weekDays.forEach(wd => {
             result.push({ weekLabel, weekDates, dayName: wd.dayName, date: wd.date, dateStr: wd.dateStr, beatIndex });
             beatIndex++;
