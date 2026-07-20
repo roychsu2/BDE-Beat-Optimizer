@@ -154,7 +154,7 @@ function downloadTemplate() {
 
     // Row 1: Column headers
     const headers = [
-        'Employee Name', 'Code', 'Head Quarter', 'Customer Name', 'Customer Type',
+        'Employee Name', 'Code', 'Head Quarter/City', 'Customer Name', 'Customer Type',
         'Mobile', 'Shop Address', 'PIN Code', 'LAT LONG'
     ];
 
