@@ -185,6 +185,7 @@ function downloadTemplate() {
         ['REQUIRED COLUMNS', 'Notes'],
         ['Employee Name', 'Name of the BDE/Sales Representative. Used to filter per employee.'],
         ['Code', 'Unique customer code (e.g. C-1001). Must be unique per customer.'],
+        ['Head Quarter/City', 'City or Head Quarter of the location.'],
         ['Customer Name', 'Full name of the shop or outlet.'],
         ['Customer Type', 'One of: Retailer, Chemist, Stockist C2D, Stockist D2R, Stockist CRD'],
         ['Mobile', '10-digit mobile number of the shop owner.'],
@@ -195,9 +196,9 @@ function downloadTemplate() {
         ['CUSTOMER TYPE VALUES', 'Description'],
         ['Retailer', 'Retail chemist / general pharmacist (1 call weight)'],
         ['Chemist', 'Same as Retailer (1 call weight)'],
-        ['Stockist C2D', 'Company-to-Distributor stockist (2 call weight)'],
-        ['Stockist D2R', 'Distributor-to-Retailer stockist (2 call weight)'],
-        ['Stockist CRD', 'Stockist with both C2D and D2R roles (2 call weight)'],
+        ['Stockist C2D', 'Company-to-Distributor stockist (1 call weight)'],
+        ['Stockist D2R', 'Distributor-to-Retailer stockist (1 call weight)'],
+        ['Stockist CRD', 'Stockist with both C2D and D2R roles (1 call weight)'],
         [''],
         ['HOW TO FILL'],
         ['1. Row 1 is the header — do NOT change the column names.'],
@@ -308,7 +309,7 @@ function cleanAndNormalize(data) {
         let weight = 1;
         const ct = String(row['Customer Type'] || '').toUpperCase();
         if (ct.indexOf('STOCKIST') !== -1 || ct.indexOf('DISTRIBUTOR') !== -1 || ct.indexOf('CRD') !== -1) {
-            weight = 2; // Max weightage is 2 for any stockist (C2D, D2R, or both)
+            weight = 1; // Max weightage is 1 for any stockist (C2D, D2R, or both)
         }
         return Object.assign({}, row, {
             latitude: lat, longitude: lon, is_imputed: isImputed, call_weight: weight,
