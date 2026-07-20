@@ -154,7 +154,7 @@ function downloadTemplate() {
 
     // Row 1: Column headers
     const headers = [
-        'Employee Name', 'Code', 'Customer Name', 'Customer Type',
+        'Employee Name', 'Code', 'Head Quarter', 'Customer Name', 'Customer Type',
         'Mobile', 'Shop Address', 'PIN Code', 'LAT LONG'
     ];
 
@@ -162,6 +162,7 @@ function downloadTemplate() {
     const guidance = [
         'e.g. Rahul Sharma',
         'e.g. C-1001',
+        'e.g. Banaras',
         'e.g. Sunrise Medical Store',
         'Retailer / Chemist / Stockist C2D / Stockist D2R / Stockist CRD',
         'e.g. 9876543210',
@@ -172,7 +173,7 @@ function downloadTemplate() {
 
     const ws = XLSX.utils.aoa_to_sheet([headers, guidance]);
     ws['!cols'] = [
-        { wch: 20 }, { wch: 12 }, { wch: 30 }, { wch: 22 },
+        { wch: 20 }, { wch: 12 }, { wch: 15 }, { wch: 30 }, { wch: 22 },
         { wch: 16 }, { wch: 38 }, { wch: 12 }, { wch: 42 }
     ];
     XLSX.utils.book_append_sheet(wb, ws, 'Customer List');
@@ -647,27 +648,7 @@ function runOptimizationForData(empData, numBeats) {
     let beatAllocations = {};
     territories.forEach(hq => beatAllocations[hq] = []);
 
-    // 2. Read Mapping
-    let dateMapping = {};
-    try {
-        const mappingEl = document.getElementById('date-territory-mapping');
-        if (mappingEl && mappingEl.value.trim()) dateMapping = JSON.parse(mappingEl.value.trim());
-    } catch(e) { console.warn("Invalid mapping JSON"); }
-
-    let unallocatedBeats = [];
-    if (Object.keys(dateMapping).length > 0) {
-        beatSchedule.forEach(b => {
-            const dIso = formatLocalISO(b.date);
-            const hq = dateMapping[dIso] || dateMapping[b.dateStr];
-            if (hq && territoryNodes[hq]) {
-                beatAllocations[hq].push(b);
-            } else {
-                unallocatedBeats.push(b);
-            }
-        });
-    } else {
-        unallocatedBeats = [...beatSchedule];
-    }
+    let unallocatedBeats = [...beatSchedule];
     
     // Distribute unallocated beats proportionally based on node counts
     if (unallocatedBeats.length > 0) {
@@ -685,7 +666,7 @@ function runOptimizationForData(empData, numBeats) {
         }
     }
 
-    // 3. Optimize each territory separately
+    // 2. Optimize each territory separately
     territories.forEach(hq => {
         const nodes = territoryNodes[hq];
         const beats = beatAllocations[hq];
