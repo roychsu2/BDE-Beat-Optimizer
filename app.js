@@ -312,6 +312,7 @@ function cleanAndNormalize(data) {
         return Object.assign({}, row, {
             latitude: lat, longitude: lon, is_imputed: isImputed, call_weight: weight,
             pin_code: String(row['PIN Code'] || '').trim(),
+            head_quarter: String(row['Head Quarter'] || '').trim(),
             mobile_clean: String(row['Mobile'] || '').replace(/\D/g, '').trim(),
             address_clean: String(row['Shop Address'] || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim()
         });
@@ -359,6 +360,7 @@ function buildUniqueNodes(data) {
         for (let j = i; j < data.length; j++) {
             if (nodeMap[j] !== -1) continue;
             const rj = data[j];
+            if (ri.head_quarter && rj.head_quarter && ri.head_quarter !== rj.head_quarter) continue;
             let hit = false;
             if (!ri.is_imputed && !rj.is_imputed && ri.latitude !== 0 && ri.longitude !== 0) {
                 if (Math.abs(rj.latitude - ri.latitude) < 1e-4 && Math.abs(rj.longitude - ri.longitude) < 1e-4) hit = true;
@@ -379,7 +381,8 @@ function buildUniqueNodes(data) {
             CustomerName: [...new Set(rows.map(r => r['Customer Name']).filter(Boolean))].join(' / '),
             CustomerType: uniq(rows.map(r => r['Customer Type'])),
             Mobile: uniq(rows.map(r => r['Mobile'])),
-            ShopAddress: [...new Set(rows.map(r => r['Shop Address']).filter(Boolean))].join(' | ')
+            ShopAddress: [...new Set(rows.map(r => r['Shop Address']).filter(Boolean))].join(' | '),
+            head_quarter: rows[0].head_quarter || ''
         });
         nextId++;
     }
@@ -629,31 +632,98 @@ function runOptimizationForData(empData, numBeats) {
 
     const k = Math.min(numBeats, validNodes.length);
     let nodeClusterMap = {}, centroids = [];
-    const coordSet = {};
-    validNodes.forEach(n => { coordSet[n.latitude.toFixed(5) + ',' + n.longitude.toFixed(5)] = true; });
+    const clusterToBeat = {};
+    let currentClusterIdx = 0;
+    
+    // 1. Group by HQ / territory
+    const territoryNodes = {};
+    validNodes.forEach(n => {
+        const hq = n.head_quarter || "Unassigned";
+        if (!territoryNodes[hq]) territoryNodes[hq] = [];
+        territoryNodes[hq].push(n);
+    });
+    
+    const territories = Object.keys(territoryNodes);
+    let beatAllocations = {};
+    territories.forEach(hq => beatAllocations[hq] = []);
 
-    if (Object.keys(coordSet).length < k) {
-        validNodes.forEach((node, i) => { nodeClusterMap[node.node_id] = i % k; });
-        centroids = new Array(k).fill(null).map((_, c) => {
-            const cn = validNodes.filter(n => nodeClusterMap[n.node_id] === c);
-            return cn.length ? { lat: cn.reduce((s, n) => s + n.latitude, 0) / cn.length, lon: cn.reduce((s, n) => s + n.longitude, 0) / cn.length } : { lat: 22.5726, lon: 88.3639 };
+    // 2. Read Mapping
+    let dateMapping = {};
+    try {
+        const mappingEl = document.getElementById('date-territory-mapping');
+        if (mappingEl && mappingEl.value.trim()) dateMapping = JSON.parse(mappingEl.value.trim());
+    } catch(e) { console.warn("Invalid mapping JSON"); }
+
+    let unallocatedBeats = [];
+    if (Object.keys(dateMapping).length > 0) {
+        beatSchedule.forEach(b => {
+            const dIso = formatLocalISO(b.date);
+            const hq = dateMapping[dIso] || dateMapping[b.dateStr];
+            if (hq && territoryNodes[hq]) {
+                beatAllocations[hq].push(b);
+            } else {
+                unallocatedBeats.push(b);
+            }
         });
     } else {
-        const r1 = runKMeans(validNodes, k);
-        const r2 = balanceClusters(validNodes, r1.nodeClusterMap, r1.centroids, k);
-        nodeClusterMap = r2.nodeClusterMap;
-        centroids = r2.centroids;
+        unallocatedBeats = [...beatSchedule];
+    }
+    
+    // Distribute unallocated beats proportionally based on node counts
+    if (unallocatedBeats.length > 0) {
+        const totalValid = validNodes.length;
+        territories.forEach(hq => {
+            const target = Math.round((territoryNodes[hq].length / totalValid) * unallocatedBeats.length);
+            for(let i=0; i<target && unallocatedBeats.length > 0; i++) {
+                beatAllocations[hq].push(unallocatedBeats.shift());
+            }
+        });
+        // Any leftovers go to largest territory
+        while (unallocatedBeats.length > 0) {
+            const largestHq = territories.reduce((a, b) => territoryNodes[a].length > territoryNodes[b].length ? a : b);
+            beatAllocations[largestHq].push(unallocatedBeats.shift());
+        }
     }
 
-    const centerLat = validNodes.reduce((s, n) => s + n.latitude, 0) / validNodes.length;
-    const centerLon = validNodes.reduce((s, n) => s + n.longitude, 0) / validNodes.length;
-
-    const clusterAngles = centroids.map((c, idx) => ({
-        angle: Math.atan2(c.lat - centerLat, c.lon - centerLon), origIdx: idx
-    })).sort((a, b) => a.angle - b.angle);
-
-    const clusterToBeat = {};
-    clusterAngles.forEach((ca, i) => { clusterToBeat[ca.origIdx] = beatSchedule[i % beatSchedule.length]; });
+    // 3. Optimize each territory separately
+    territories.forEach(hq => {
+        const nodes = territoryNodes[hq];
+        const beats = beatAllocations[hq];
+        let tk = beats.length;
+        
+        // If a territory didn't get any beats but has nodes, fallback to week 1 monday
+        if (tk === 0) {
+            nodes.forEach(node => { nodeClusterMap[node.node_id] = -1; });
+            return; 
+        }
+        
+        if (nodes.length <= tk) {
+            nodes.forEach((node, i) => {
+                nodeClusterMap[node.node_id] = currentClusterIdx + (i % tk);
+            });
+            for(let i=0; i<tk; i++) {
+                const cn = nodes.filter((n, idx) => (idx % tk) === i);
+                centroids.push(cn.length ? { lat: cn.reduce((s, n) => s + n.latitude, 0) / cn.length, lon: cn.reduce((s, n) => s + n.longitude, 0) / cn.length } : { lat: 22.5726, lon: 88.3639 });
+                clusterToBeat[currentClusterIdx + i] = beats[i];
+            }
+        } else {
+            const r1 = runKMeans(nodes, tk);
+            const r2 = balanceClusters(nodes, r1.nodeClusterMap, r1.centroids, tk);
+            nodes.forEach(node => { nodeClusterMap[node.node_id] = currentClusterIdx + r2.nodeClusterMap[node.node_id]; });
+            
+            const centerLat = nodes.reduce((s, n) => s + n.latitude, 0) / nodes.length;
+            const centerLon = nodes.reduce((s, n) => s + n.longitude, 0) / nodes.length;
+            const clusterAngles = r2.centroids.map((c, idx) => ({
+                angle: Math.atan2(c.lat - centerLat, c.lon - centerLon), origIdx: idx
+            })).sort((a, b) => a.angle - b.angle);
+            
+            clusterAngles.forEach((ca, i) => { 
+                clusterToBeat[currentClusterIdx + ca.origIdx] = beats[i]; 
+                centroids.push(r2.centroids[ca.origIdx]);
+            });
+        }
+        currentClusterIdx += tk;
+    });
 
     const nodeWeekMap = {}, nodeDayMap = {}, nodeDateMap = {};
     validNodes.forEach(node => {

@@ -120,7 +120,9 @@ def build_unique_nodes(df_all):
         mobile_match = (mobile != '') & (df_all['mobile_clean'] == mobile)
         address_match = (address != '') & (df_all['address_clean'] == address)
         
-        final_match = coord_match | mobile_match | address_match
+        hq = str(row.get('Head Quarter', '')).strip()
+        hq_match = (df_all['Head Quarter'].astype(str).str.strip() == hq) | (df_all['Head Quarter'].isna() & (hq == 'nan' or hq == ''))
+        final_match = (coord_match | mobile_match | address_match) & hq_match
         
         matched_indices = df_all[mask & final_match].index
         
@@ -136,6 +138,7 @@ def build_unique_nodes(df_all):
         'latitude': 'mean',
         'longitude': 'mean',
         'call_weight': 'sum',
+        'Head Quarter': 'first',
         'Code': lambda x: ';'.join(x.astype(str).unique()),
         'Customer Name': lambda x: ' / '.join(x.astype(str).unique()),
         'Customer Type': lambda x: ';'.join(x.astype(str).unique()),
@@ -267,54 +270,67 @@ def main():
         sys.exit(1)
         
     print("Clustering stops into 24 daily beats (4 weeks * 6 days)...")
-    n_clusters = min(24, len(cluster_nodes))
+    total_beats = 24
+    cluster_nodes['Head Quarter'] = cluster_nodes['Head Quarter'].fillna('Unassigned')
+    territories = cluster_nodes['Head Quarter'].unique()
     
-    # Check if number of unique coordinates is less than 24
-    unique_coords_count = len(cluster_nodes.groupby(['latitude', 'longitude']))
+    beat_allocations = {hq: 0 for hq in territories}
+    unallocated_beats = total_beats
+    total_valid = len(cluster_nodes)
     
-    if unique_coords_count < n_clusters:
-        print(f"Unique coordinates count ({unique_coords_count}) is less than required beats ({n_clusters}). Using round-robin sequential fallback assignment.")
-        balanced_labels = np.arange(len(cluster_nodes)) % n_clusters
-        balanced_centroids = []
-        for c in range(n_clusters):
-            c_nodes = cluster_nodes[balanced_labels == c]
-            if len(c_nodes) > 0:
-                balanced_centroids.append([c_nodes['latitude'].mean(), c_nodes['longitude'].mean()])
-            else:
-                balanced_centroids.append([22.5726, 88.3639])
-    else:
-        kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
-        cluster_labels = kmeans.fit_predict(cluster_nodes[['latitude', 'longitude']])
-        centroids = list(kmeans.cluster_centers_)
+    for hq in territories:
+        hq_nodes = cluster_nodes[cluster_nodes['Head Quarter'] == hq]
+        alloc = int(round((len(hq_nodes) / total_valid) * total_beats))
+        beat_allocations[hq] = alloc
+        unallocated_beats -= alloc
         
-        balanced_labels, balanced_centroids = balance_clusters(
-            cluster_nodes, cluster_labels, centroids, n_clusters
-        )
+    while unallocated_beats > 0:
+        largest_hq = max(territories, key=lambda hq: len(cluster_nodes[cluster_nodes['Head Quarter'] == hq]))
+        beat_allocations[largest_hq] += 1
+        unallocated_beats -= 1
+        
+    while unallocated_beats < 0:
+        largest_hq = max(territories, key=lambda hq: len(cluster_nodes[cluster_nodes['Head Quarter'] == hq]))
+        if beat_allocations[largest_hq] > 0:
+            beat_allocations[largest_hq] -= 1
+            unallocated_beats += 1
+            
+    current_cluster_idx = 0
+    balanced_labels = np.zeros(len(cluster_nodes), dtype=int)
+    
+    for hq in territories:
+        hq_mask = (cluster_nodes['Head Quarter'] == hq)
+        hq_nodes = cluster_nodes[hq_mask]
+        n_clusters = beat_allocations[hq]
+        
+        if n_clusters == 0:
+            balanced_labels[hq_mask] = -1
+            continue
+            
+        unique_coords_count = len(hq_nodes.groupby(['latitude', 'longitude']))
+        if unique_coords_count < n_clusters:
+            labels = np.arange(len(hq_nodes)) % n_clusters
+        else:
+            kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+            labels = kmeans.fit_predict(hq_nodes[['latitude', 'longitude']])
+            centroids = list(kmeans.cluster_centers_)
+            labels, _ = balance_clusters(hq_nodes, labels, centroids, n_clusters)
+            
+        balanced_labels[hq_mask] = current_cluster_idx + labels
+        current_cluster_idx += n_clusters
         
     cluster_nodes['cluster'] = balanced_labels
-    
-    center_lat = cluster_nodes['latitude'].mean()
-    center_lon = cluster_nodes['longitude'].mean()
-    
-    centroids_np = np.array(balanced_centroids)
-    angles = []
-    for idx, (c_lat, c_lon) in enumerate(centroids_np):
-        angle = np.arctan2(c_lat - center_lat, c_lon - center_lon)
-        angles.append((angle, idx))
-        
-    angles.sort()
-    cluster_order = [idx for angle, idx in angles]
     
     week_names = ["Week 1", "Week 2", "Week 3", "Week 4"]
     day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     
     cluster_to_week = {}
     cluster_to_day = {}
-    for i, cluster_idx in enumerate(cluster_order):
+    for i in range(24):
         week_num = i // 6
         day_num = i % 6
-        cluster_to_week[cluster_idx] = week_names[min(week_num, len(week_names)-1)]
-        cluster_to_day[cluster_idx] = day_names[day_num]
+        cluster_to_week[i] = week_names[min(week_num, len(week_names)-1)]
+        cluster_to_day[i] = day_names[day_num]
         
     cluster_nodes['week'] = cluster_nodes['cluster'].map(cluster_to_week).fillna('Week 1')
     cluster_nodes['beat_day'] = cluster_nodes['cluster'].map(cluster_to_day).fillna('Monday')
@@ -374,6 +390,10 @@ def main():
         'Friday': 'orange',
         'Saturday': 'pink'
     }
+    
+    valid_map_nodes = nodes_final[(nodes_final['latitude'] != 0.0) & (nodes_final['longitude'] != 0.0)]
+    center_lat = valid_map_nodes['latitude'].mean() if len(valid_map_nodes) > 0 else 22.5726
+    center_lon = valid_map_nodes['longitude'].mean() if len(valid_map_nodes) > 0 else 88.3639
     
     m = folium.Map(location=[center_lat, center_lon], zoom_start=12)
     for idx, row in nodes_final.iterrows():
